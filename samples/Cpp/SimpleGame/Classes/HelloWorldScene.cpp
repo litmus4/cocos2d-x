@@ -23,9 +23,11 @@ HelloWorld::~HelloWorld()
 }
 
 HelloWorld::HelloWorld()
-:_targets(NULL)
+:_player(NULL)
+,_targets(NULL)
 ,_projectiles(NULL)
 ,_projectilesDestroyed(0)
+,_moveLen(0.0f)
 {
 }
 
@@ -92,17 +94,18 @@ bool HelloWorld::init()
 
 		/////////////////////////////
 		// 2. add your codes below...
-		auto player = Sprite::create("Player.png", Rect(0, 0, 27, 40) );
+		_player = Sprite::create("Player.png", Rect(0, 0, 101, 66) );
         
-		player->setPosition( Point(origin.x + player->getContentSize().width/2,
+		_player->setPosition( Point(origin.x + _player->getContentSize().width/2,
                                  origin.y + visibleSize.height/2) );
-		this->addChild(player);
+		this->addChild(_player);
 
 		this->schedule( schedule_selector(HelloWorld::gameLogic), 1.0 );
 
         auto dispatcher = Director::getInstance()->getEventDispatcher();
         auto listener = EventListenerTouchAllAtOnce::create();
         listener->onTouchesEnded = CC_CALLBACK_2(HelloWorld::onTouchesEnded, this);
+		listener->onTouchesMoved = CC_CALLBACK_2(HelloWorld::onTouchesMoved, this);
         dispatcher->addEventListenerWithSceneGraphPriority(listener, this);
         
 		_targets = new Array();
@@ -195,17 +198,30 @@ void HelloWorld::gameLogic(float dt)
 // cpp with cocos2d-x
 void HelloWorld::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
+	if (_moveLen >= 30.0f)
+	{
+		_moveLen = -1.0f;
+		return;
+	}
+	else
+		_moveLen = -1.0f;
 	// Choose one of the touches to work with
 	Touch* touch = touches[0];
 	Point location = touch->getLocation();
+
+	Size winSize = Director::getInstance()->getVisibleSize();
+	auto origin = Director::getInstance()->getVisibleOrigin();
+	if (location.x < origin.x + 70)
+	{
+		return;
+	}
     
 	log("++++++++after  x:%f, y:%f", location.x, location.y);
 
 	// Set up initial location of projectile
-	Size winSize = Director::getInstance()->getVisibleSize();
-    auto origin = Director::getInstance()->getVisibleOrigin();
-	Sprite *projectile = Sprite::create("Projectile.png", Rect(0, 0, 20, 20));
-	projectile->setPosition( Point(origin.x+20, origin.y+winSize.height/2) );
+	Sprite *projectile = Sprite::create("Projectile.png", Rect(0, 0, 60, 45));
+	projectile->setAnchorPoint(Point(0.0f, 0.5f));
+	projectile->setPosition( Point(origin.x+50, _player->getPosition().y+10) );
 
 	// Determinie offset of location to projectile
 	float offX = location.x - projectile->getPosition().x;
@@ -230,6 +246,8 @@ void HelloWorld::onTouchesEnded(const std::vector<Touch*>& touches, Event* event
 	float velocity = 480/1; // 480pixels/1sec
 	float realMoveDuration = length/velocity;
 
+	projectile->setRotation(-(atan(ratio) * 180.0f / SG_PI));
+
 	// Move projectile to actual endpoint
 	projectile->runAction( Sequence::create(
 		MoveTo::create(realMoveDuration, realDest),
@@ -241,6 +259,32 @@ void HelloWorld::onTouchesEnded(const std::vector<Touch*>& touches, Event* event
 	_projectiles->addObject(projectile);
 
 	CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew-pew-lei.wav");
+}
+
+void HelloWorld::onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event)
+{
+	Touch* touch = touches[0];
+	Point lastLoca = touch->getPreviousLocation();
+	Point curLoca = touch->getLocation();
+	float fDeltaX = curLoca.x - lastLoca.x;
+	float fDeltaY = curLoca.y - lastLoca.y;
+	float fRatio = fDeltaY / fDeltaX;
+	if (fRatio > 2.0f || fRatio < -2.0f)
+	{
+		Size winSize = Director::getInstance()->getVisibleSize();
+		auto origin = Director::getInstance()->getVisibleOrigin();
+
+		Point lastPlayerPos = _player->getPosition();
+		lastPlayerPos.y += fDeltaY * 2;
+		if (lastPlayerPos.y > origin.y + _player->getContentSize().height/2 &&
+			lastPlayerPos.y < origin.y + winSize.height - _player->getContentSize().height/2)
+		{
+			_player->setPosition(lastPlayerPos);
+		}
+	}
+	if (_moveLen < -0.5f)
+		_moveLen = 0.0f;
+	_moveLen += sqrtf((fDeltaX * fDeltaX) + (fDeltaY * fDeltaY));
 }
 
 void HelloWorld::updateGame(float dt)
@@ -289,7 +333,7 @@ void HelloWorld::updateGame(float dt)
 			this->removeChild(target, true);
 
 			_projectilesDestroyed++;
-			if (_projectilesDestroyed >= 5)
+			if (_projectilesDestroyed >= 20)
 			{
 				auto gameOverScene = GameOverScene::create();
 				gameOverScene->getLayer()->getLabel()->setString("You Win!");

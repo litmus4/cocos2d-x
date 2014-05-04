@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 
 //#include "SimpleAudioEngine.h"
+#define SG_PI 3.14159265f
 
 class HelloWorld : public cocos2d::LayerColor
 {
@@ -31,12 +32,15 @@ public:
 	void updateGame(float dt);
 
 	void onTouchesEnded(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event* event);
+	void onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
     
     
 protected:
+	cocos2d::Sprite *_player;
 	cocos2d::Array *_targets;
 	cocos2d::Array *_projectiles;
 	int _projectilesDestroyed;
+	float _moveLen;
 
 	void addTarget();
 

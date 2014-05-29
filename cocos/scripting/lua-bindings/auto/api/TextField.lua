@@ -154,7 +154,7 @@
 --------------------------------
 -- @function [parent=#TextField] hitTest 
 -- @param self
--- @param #vector2_table array
+-- @param #vec2_table vec2
 -- @return bool#bool ret (return value: bool)
         
 --------------------------------

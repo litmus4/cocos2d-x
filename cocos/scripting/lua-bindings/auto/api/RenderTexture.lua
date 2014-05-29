@@ -6,7 +6,7 @@
 --------------------------------
 -- @function [parent=#RenderTexture] setVirtualViewport 
 -- @param self
--- @param #vector2_table array
+-- @param #vec2_table vec2
 -- @param #rect_table rect
 -- @param #rect_table rect
         
@@ -169,7 +169,14 @@
 -- @function [parent=#RenderTexture] draw 
 -- @param self
 -- @param #cc.Renderer renderer
--- @param #matrix_table matrix
+-- @param #mat4_table mat4
+-- @param #bool bool
+        
+--------------------------------
+-- @function [parent=#RenderTexture] visit 
+-- @param self
+-- @param #cc.Renderer renderer
+-- @param #mat4_table mat4
 -- @param #bool bool
         
 --------------------------------

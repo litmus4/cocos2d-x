@@ -113,7 +113,6 @@ bool Button::init(const std::string &normalImage,
             break;
         }
         
-        setTouchEnabled(true);
         this->loadTextures(normalImage, selectedImage, disableImage,texType);
     } while (0);
     return ret;
@@ -135,7 +134,7 @@ void Button::initRenderer()
     _buttonClickedRenderer = Sprite::create();
     _buttonDisableRenderer = Sprite::create();
     _titleRenderer = Label::create();
-    _titleRenderer->setAnchorPoint(Vector2::ANCHOR_MIDDLE);
+    _titleRenderer->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 
     addProtectedChild(_buttonNormalRenderer, NORMAL_RENDERER_Z, -1);
     addProtectedChild(_buttonClickedRenderer, PRESSED_RENDERER_Z, -1);
@@ -192,7 +191,7 @@ void Button::setScale9Enabled(bool able)
     setBright(_bright);
 }
 
-bool Button::isScale9Enabled()
+bool Button::isScale9Enabled()const
 {
     return _scale9Enabled;
 }
@@ -375,7 +374,7 @@ void Button::setCapInsetsNormalRenderer(const Rect &capInsets)
     static_cast<extension::Scale9Sprite*>(_buttonNormalRenderer)->setCapInsets(capInsets);
 }
 
-const Rect& Button::getCapInsetsNormalRenderer()
+const Rect& Button::getCapInsetsNormalRenderer()const
 {
     return _capInsetsNormal;
 }
@@ -390,7 +389,7 @@ void Button::setCapInsetsPressedRenderer(const Rect &capInsets)
     static_cast<extension::Scale9Sprite*>(_buttonClickedRenderer)->setCapInsets(capInsets);
 }
 
-const Rect& Button::getCapInsetsPressedRenderer()
+const Rect& Button::getCapInsetsPressedRenderer()const
 {
     return _capInsetsPressed;
 }
@@ -405,7 +404,7 @@ void Button::setCapInsetsDisabledRenderer(const Rect &capInsets)
     static_cast<extension::Scale9Sprite*>(_buttonDisableRenderer)->setCapInsets(capInsets);
 }
 
-const Rect& Button::getCapInsetsDisabledRenderer()
+const Rect& Button::getCapInsetsDisabledRenderer()const
 {
     return _capInsetsDisabled;
 }
@@ -520,7 +519,7 @@ void Button::updateFlippedY()
     
 void Button::updateTitleLocation()
 {
-    _titleRenderer->setPosition(Vector2(_contentSize.width * 0.5f, _contentSize.height * 0.5f));
+    _titleRenderer->setPosition(Vec2(_contentSize.width * 0.5f, _contentSize.height * 0.5f));
 }
 
 void Button::onSizeChanged()

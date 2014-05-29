@@ -8,6 +8,9 @@ import sys
 import traceback
 from jenkinsapi.jenkins import Jenkins
 
+http_proxy = 'http://127.0.0.1:8087'
+proxyDict = {'http':http_proxy,'https':http_proxy}
+
 def check_queue_build(action, pr_num, statuses_url):
     username = os.environ['JENKINS_ADMIN']
     password = os.environ['JENKINS_ADMIN_PW']
@@ -21,6 +24,14 @@ def check_queue_build(action, pr_num, statuses_url):
       if(q_pr_num == pr_num):
         if(action == 'closed') or (q_statuses_url != statuses_url):
           queues.delete_item(queue)
+          target_url = os.environ['JOB_PULL_REQUEST_BUILD_URL']
+          data = {"state":"error", "target_url":target_url}
+          access_token = os.environ['GITHUB_ACCESS_TOKEN']
+          Headers = {"Authorization":"token " + access_token} 
+          try:
+              requests.post(statuses_url, data=json.dumps(data), headers=Headers, proxies = proxyDict)
+          except:
+              traceback.print_exc()
 
 def main():
     #get payload from os env
@@ -63,7 +74,7 @@ def main():
         print 'pull request #' + str(pr_num) + ' is '+action+', no build triggered'
         return(0)
   
-    r = requests.get(pr['url']+"/commits")
+    r = requests.get(pr['url']+"/commits", proxies = proxyDict)
     commits = r.json()
     last_commit = commits[len(commits)-1]
     message = last_commit['commit']['message']
@@ -82,7 +93,7 @@ def main():
     Headers = {"Authorization":"token " + access_token} 
 
     try:
-        requests.post(statuses_url, data=json.dumps(data), headers=Headers)
+        requests.post(statuses_url, data=json.dumps(data), headers=Headers, proxies = proxyDict)
     except:
         traceback.print_exc()
 
@@ -90,7 +101,7 @@ def main():
     #send trigger and payload
     post_data = {'payload':""}
     post_data['payload']= json.dumps(payload_forword)
-    requests.post(job_trigger_url, data=post_data)
+    requests.post(job_trigger_url, data=post_data, proxies = proxyDict)
 
     return(0)
 

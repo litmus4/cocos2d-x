@@ -65,6 +65,7 @@ set(SAMPLE_SRC
   Classes/ExtensionsTest/NotificationCenterTest/NotificationCenterTest.cpp
   Classes/ExtensionsTest/NetworkTest/HttpClientTest.cpp
   Classes/ExtensionsTest/CocoStudioArmatureTest/ArmatureScene.cpp
+  Classes/ExtensionsTest/CocoStudioActionTimelineTest/ActionTimelineTestScene.cpp
   Classes/ExtensionsTest/CocoStudioComponentsTest/ComponentsTestScene.cpp
   Classes/ExtensionsTest/CocoStudioComponentsTest/EnemyController.cpp
   Classes/ExtensionsTest/CocoStudioComponentsTest/GameOverScene.cpp
@@ -80,6 +81,8 @@ set(SAMPLE_SRC
   Classes/UITest/CocoStudioGUITest/CustomGUIScene.cpp
   Classes/UITest/CocoStudioGUITest/UIScene.cpp
   Classes/UITest/CocoStudioGUITest/UISceneManager.cpp
+  Classes/UITest/CocoStudioGUITest/CocostudioParserTest/CocostudioParserJsonTest.cpp
+  Classes/UITest/CocoStudioGUITest/CocostudioParserTest.cpp 
   Classes/UITest/CocoStudioGUITest/UIButtonTest/UIButtonTest.cpp
   Classes/UITest/CocoStudioGUITest/UIFocusTest/UIFocusTest.cpp
   Classes/UITest/CocoStudioGUITest/UICheckBoxTest/UICheckBoxTest.cpp
@@ -162,6 +165,7 @@ set(SAMPLE_SRC
   Classes/TexturePackerEncryptionTest/TextureAtlasEncryptionTest.cpp
   Classes/TextureCacheTest/TextureCacheTest.cpp
   Classes/TileMapTest/TileMapTest.cpp
+  Classes/TileMapTest/TileMapTest2.cpp
   Classes/TouchesTest/Ball.cpp
   Classes/TouchesTest/Paddle.cpp
   Classes/TouchesTest/TouchesTest.cpp
@@ -202,10 +206,6 @@ target_link_libraries(${APP_NAME}
   cocos2d
   box2d
 )
-# MinGW builds need to link libws2_32 manually
-if (MINGW)
-  target_link_libraries(${APP_NAME} ws2_32)
-endif()
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin/${APP_NAME}")
 

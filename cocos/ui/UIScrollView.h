@@ -33,7 +33,7 @@ class EventFocusListener;
 
 namespace ui {
 
-CC_DEPRECATED_ATTRIBUTE typedef enum
+typedef enum
 {
     SCROLLVIEW_EVENT_SCROLL_TO_TOP,
     SCROLLVIEW_EVENT_SCROLL_TO_BOTTOM,
@@ -46,7 +46,7 @@ CC_DEPRECATED_ATTRIBUTE typedef enum
     SCROLLVIEW_EVENT_BOUNCE_RIGHT
 }ScrollviewEventType;
 
-CC_DEPRECATED_ATTRIBUTE typedef void (Ref::*SEL_ScrollViewEvent)(Ref*, ScrollviewEventType);
+typedef void (Ref::*SEL_ScrollViewEvent)(Ref*, ScrollviewEventType);
 #define scrollvieweventselector(_SELECTOR) (SEL_ScrollViewEvent)(&_SELECTOR)
 
 
@@ -251,15 +251,18 @@ public:
      * Add call back function called scrollview event triggered
      */
     CC_DEPRECATED_ATTRIBUTE void addEventListenerScrollView(Ref* target, SEL_ScrollViewEvent selector);
-    void addEventListener(const ccScrollViewCallback& callback);
+    virtual void addEventListener(const ccScrollViewCallback& callback);
     
     //all of these functions are related to innerContainer.
-    virtual void addChild(Node * child) override;
-    virtual void addChild(Node * child, int zOrder) override;
+    virtual void addChild(Node* child)override;
+    virtual void addChild(Node * child, int localZOrder)override;
     virtual void addChild(Node* child, int zOrder, int tag) override;
+    virtual void addChild(Node* child, int zOrder, const std::string &name) override;
+    
     virtual void removeAllChildren() override;
     virtual void removeAllChildrenWithCleanup(bool cleanup) override;
 	virtual void removeChild(Node* child, bool cleaup = true) override;
+    
     virtual Vector<Node*>& getChildren() override;
     virtual const Vector<Node*>& getChildren() const override;
     virtual ssize_t getChildrenCount() const override;

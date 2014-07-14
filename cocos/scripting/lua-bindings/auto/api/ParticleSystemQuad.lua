@@ -2,6 +2,7 @@
 --------------------------------
 -- @module ParticleSystemQuad
 -- @extend ParticleSystem
+-- @parent_module cc
 
 --------------------------------
 -- @function [parent=#ParticleSystemQuad] setDisplayFrame 
@@ -13,6 +14,11 @@
 -- @param self
 -- @param #cc.Texture2D texture2d
 -- @param #rect_table rect
+        
+--------------------------------
+-- @function [parent=#ParticleSystemQuad] listenRendererRecreated 
+-- @param self
+-- @param #cc.EventCustom eventcustom
         
 --------------------------------
 -- overload function: create(string)

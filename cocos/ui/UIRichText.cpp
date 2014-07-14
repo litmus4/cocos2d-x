@@ -66,7 +66,7 @@ RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte 
         return element;
     }
     CC_SAFE_DELETE(element);
-    return NULL;
+    return nullptr;
 }
     
 bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize)
@@ -90,7 +90,7 @@ RichElementImage* RichElementImage::create(int tag, const Color3B &color, GLubyt
         return element;
     }
     CC_SAFE_DELETE(element);
-    return NULL;
+    return nullptr;
 }
     
 bool RichElementImage::init(int tag, const Color3B &color, GLubyte opacity, const std::string& filePath)
@@ -112,7 +112,7 @@ RichElementCustomNode* RichElementCustomNode::create(int tag, const Color3B &col
         return element;
     }
     CC_SAFE_DELETE(element);
-    return NULL;
+    return nullptr;
 }
     
 bool RichElementCustomNode::init(int tag, const Color3B &color, GLubyte opacity, cocos2d::Node *customNode)
@@ -149,7 +149,7 @@ RichText* RichText::create()
         return widget;
     }
     CC_SAFE_DELETE(widget);
-    return NULL;
+    return nullptr;
 }
     
 bool RichText::init()
@@ -204,7 +204,7 @@ void RichText::formatText()
             for (ssize_t i=0; i<_richElements.size(); i++)
             {
                 RichElement* element = _richElements.at(i);
-                Node* elementRenderer = NULL;
+                Node* elementRenderer = nullptr;
                 switch (element->_type)
                 {
                     case RichElement::Type::TEXT:
@@ -371,7 +371,7 @@ void RichText::formarRenderers()
             Node* l = row->at(j);
             l->setAnchorPoint(Vec2::ZERO);
             l->setPosition(Vec2(nextPosX, 0.0f));
-            _elementRenderersContainer->addChild(l, 1, (int)j);
+            _elementRenderersContainer->addChild(l, 1);
             Size iSize = l->getContentSize();
             newContentSizeWidth += iSize.width;
             newContentSizeHeight = MAX(newContentSizeHeight, iSize.height);
@@ -410,11 +410,11 @@ void RichText::formarRenderers()
                 Node* l = row->at(j);
                 l->setAnchorPoint(Vec2::ZERO);
                 l->setPosition(Vec2(nextPosX, nextPosY));
-                _elementRenderersContainer->addChild(l, 1, (int)(i*10 + j));
+                _elementRenderersContainer->addChild(l, 1);
                 nextPosX += l->getContentSize().width;
             }
         }
-        _elementRenderersContainer->setContentSize(_size);
+        _elementRenderersContainer->setContentSize(_contentSize);
         delete [] maxHeights;
     }
     
@@ -430,13 +430,13 @@ void RichText::formarRenderers()
     if (_ignoreSize)
     {
         Size s = getVirtualRendererSize();
-        _size = s;
+        this->setContentSize(s);
     }
     else
     {
-        _size = _customSize;
+        this->setContentSize(_customSize);
     }
-    updateContentSizeWithTextureSize(_size);
+    updateContentSizeWithTextureSize(_contentSize);
     _elementRenderersContainer->setPosition(_contentSize.width / 2.0f, _contentSize.height / 2.0f);
 }
     

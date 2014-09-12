@@ -77,7 +77,7 @@ Slider::~Slider()
 
 Slider* Slider::create()
 {
-    Slider* widget = new Slider();
+    Slider* widget = new (std::nothrow) Slider();
     if (widget && widget->init())
     {
         widget->autorelease();
@@ -119,6 +119,8 @@ void Slider::initRenderer()
     _slidBallRenderer->addChild(_slidBallNormalRenderer);
     _slidBallRenderer->addChild(_slidBallPressedRenderer);
     _slidBallRenderer->addChild(_slidBallDisabledRenderer);
+    _slidBallRenderer->setCascadeColorEnabled(true);
+    _slidBallRenderer->setCascadeOpacityEnabled(true);
     
     addProtectedChild(_slidBallRenderer, SLIDBALL_RENDERER_Z, -1);
 }
@@ -142,7 +144,7 @@ void Slider::loadBarTexture(const std::string& fileName, TextureResType texType)
         default:
             break;
     }
-    
+    this->updateChildrenDisplayedRGBA();
     _barRendererAdaptDirty = true;
     _progressBarRendererDirty = true;
     updateContentSizeWithTextureSize(_barRenderer->getContentSize());
@@ -167,7 +169,7 @@ void Slider::loadProgressBarTexture(const std::string& fileName, TextureResType 
         default:
             break;
     }
-    
+    this->updateChildrenDisplayedRGBA();
     _progressBarRenderer->setAnchorPoint(Vec2(0.0f, 0.5f));
     _progressBarTextureSize = _progressBarRenderer->getContentSize();
     _progressBarRendererDirty = true;
@@ -274,6 +276,7 @@ void Slider::loadSlidBallTextureNormal(const std::string& normal,TextureResType 
         default:
             break;
     }
+    this->updateChildrenDisplayedRGBA();
 }
 
 void Slider::loadSlidBallTexturePressed(const std::string& pressed,TextureResType texType)
@@ -295,6 +298,7 @@ void Slider::loadSlidBallTexturePressed(const std::string& pressed,TextureResTyp
         default:
             break;
     }
+    this->updateChildrenDisplayedRGBA();
 }
 
     void Slider::loadSlidBallTextureDisabled(const std::string& disabled,TextureResType texType)
@@ -316,6 +320,7 @@ void Slider::loadSlidBallTexturePressed(const std::string& pressed,TextureResTyp
         default:
             break;
     }
+    this->updateChildrenDisplayedRGBA();
 }
 
 void Slider::setPercent(int percent)
@@ -331,7 +336,7 @@ void Slider::setPercent(int percent)
     _percent = percent;
     float res = percent / 100.0f;
     float dis = _barLength * res;
-    _slidBallRenderer->setPosition(Vec2(dis, _contentSize.height / 2.0f));
+    _slidBallRenderer->setPosition(dis, _contentSize.height / 2.0f);
     if (_scale9Enabled)
     {
         _progressBarRenderer->setPreferredSize(Size(dis,_progressBarTextureSize.height));

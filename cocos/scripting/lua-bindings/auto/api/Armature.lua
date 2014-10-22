@@ -81,18 +81,13 @@
 -- @param self
 -- @param #string name
 -- @param #ccs.Bone parentBone
--- @return bool#bool ret (retunr value: bool)
+-- @return bool#bool ret (return value: bool)
 
 --------------------------------
 -- 
 -- @function [parent=#Armature] setParentBone 
 -- @param self
 -- @param #ccs.Bone parentBone
-        
---------------------------------
--- 
--- @function [parent=#Armature] drawContour 
--- @param self
         
 --------------------------------
 -- 
@@ -134,6 +129,12 @@
 -- @return ArmatureAnimation#ArmatureAnimation ret (return value: ccs.ArmatureAnimation)
         
 --------------------------------
+-- 
+-- @function [parent=#Armature] getOffsetPoints 
+-- @param self
+-- @return vec2_table#vec2_table ret (return value: vec2_table)
+        
+--------------------------------
 -- Get Armature's bone dictionary<br>
 -- return Armature's bone dictionary
 -- @function [parent=#Armature] getBoneDic 
@@ -148,7 +149,7 @@
 -- @param self
 -- @param #string name
 -- @param #ccs.Bone parentBone
--- @return Armature#Armature ret (retunr value: ccs.Armature)
+-- @return Armature#Armature ret (return value: ccs.Armature)
 
 --------------------------------
 -- 

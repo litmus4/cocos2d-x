@@ -82,10 +82,13 @@ enum
     kUIScrollViewTest_ScrollToPercentBothDirection,
     kUIScrollViewTest_ScrollToPercentBothDirection_Bounce,
     kUIScrollViewNestTest,
+    kUIScrollViewRotated,
+    
     kUIPageViewTest,
     kUIPageViewButtonTest,
     kUIPageViewCustomScrollThreshold,
     kUIPageViewTouchPropagationTest,
+    kUIPageViewDynamicAddAndRemoveTest,
     kUIListViewTest_Vertical,
     kUIListViewTest_Horizontal,
     kUIWidgetAddNodeTest,
@@ -99,7 +102,7 @@ enum
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     kUIVideoPlayerTest,
 #endif
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     KWebViewTest,
 #endif
     kUIScale9SpriteTest,
@@ -108,6 +111,8 @@ enum
     kUIS9BatchNodeBasic,
     kUIS9FrameNameSpriteSheet,
     kUIS9FrameNameSpriteSheetRotated,
+    kUIS9FrameNameSpriteSheetCropped,
+    kUIS9FrameNameSpriteSheetCroppedRotated,
     kUIS9BatchNodeScaledNoInsets,
     kUIS9FrameNameSpriteSheetScaledNoInsets,
     kUIS9FrameNameSpriteSheetRotatedScaledNoInsets,

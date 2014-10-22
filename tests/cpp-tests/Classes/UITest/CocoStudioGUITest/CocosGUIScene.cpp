@@ -145,7 +145,7 @@ g_guisTests[] =
         }
 	},
     {
-        "TextAtalsTest",
+        "TextAtlasTest",
         [](Ref* sender)
         {
             UISceneManager* sceneManager = UISceneManager::sharedUISceneManager();
@@ -211,7 +211,7 @@ g_guisTests[] =
             UISceneManager* sceneManager = UISceneManager::sharedUISceneManager();
             sceneManager->setCurrentUISceneId(kUIScrollViewTest_Vertical);
             sceneManager->setMinUISceneId(kUIScrollViewTest_Vertical);
-            sceneManager->setMaxUISceneId(kUIScrollViewNestTest);
+            sceneManager->setMaxUISceneId(kUIScrollViewRotated);
             Scene* scene = sceneManager->currentUIScene();
             Director::getInstance()->replaceScene(scene);
         }
@@ -223,7 +223,7 @@ g_guisTests[] =
             UISceneManager* sceneManager = UISceneManager::sharedUISceneManager();
             sceneManager->setCurrentUISceneId(kUIPageViewTest);
             sceneManager->setMinUISceneId(kUIPageViewTest);
-            sceneManager->setMaxUISceneId(kUIPageViewTouchPropagationTest);
+            sceneManager->setMaxUISceneId(kUIPageViewDynamicAddAndRemoveTest);
             Scene* scene = sceneManager->currentUIScene();
             Director::getInstance()->replaceScene(scene);
         }

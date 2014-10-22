@@ -49,6 +49,7 @@ set(TESTS_SRC
   Classes/DrawPrimitivesTest/DrawPrimitivesTest.cpp
   Classes/EffectsAdvancedTest/EffectsAdvancedTest.cpp
   Classes/EffectsTest/EffectsTest.cpp
+  Classes/ExtensionsTest/AssetsManagerExTest/AssetsManagerExTest.cpp
   Classes/ExtensionsTest/CocosBuilderTest/ButtonTest/ButtonTestLayer.cpp
   Classes/ExtensionsTest/CocosBuilderTest/CocosBuilderTest.cpp
   Classes/ExtensionsTest/CocosBuilderTest/HelloCocosBuilder/HelloCocosBuilderLayer.cpp
@@ -130,16 +131,19 @@ set(TESTS_SRC
   Classes/UITest/CocoStudioGUITest/CustomTest/CustomParticleWidgetTest/CustomParticleWidgetTest.cpp
   Classes/NewRendererTest/NewRendererTest.cpp
   Classes/NewEventDispatcherTest/NewEventDispatcherTest.cpp
+  Classes/NewAudioEngineTest/NewAudioEngineTest.cpp
   Classes/FontTest/FontTest.cpp
   Classes/IntervalTest/IntervalTest.cpp
   Classes/InputTest/MouseTest.cpp
   Classes/LabelTest/LabelTest.cpp
   Classes/LabelTest/LabelTestNew.cpp
   Classes/LayerTest/LayerTest.cpp
+  Classes/LightTest/LightTest.cpp
   Classes/MenuTest/MenuTest.cpp
   Classes/MotionStreakTest/MotionStreakTest.cpp
   Classes/MutiTouchTest/MutiTouchTest.cpp
   Classes/NodeTest/NodeTest.cpp
+  Classes/OpenURLTest/OpenURLTest.cpp
   Classes/ParallaxTest/ParallaxTest.cpp
   Classes/ParticleTest/ParticleTest.cpp
   Classes/PerformanceTest/PerformanceAllocTest.cpp

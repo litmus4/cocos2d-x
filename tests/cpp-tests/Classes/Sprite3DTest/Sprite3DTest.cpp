@@ -309,6 +309,11 @@ void Sprite3DTestScene::runThisTest()
     Director::getInstance()->replaceScene(this);
 }
 
+Sprite3DTestScene::Sprite3DTestScene()
+{
+    
+}
+
 static int tuple_sort( const std::tuple<ssize_t,Effect3D*,CustomCommand> &tuple1, const std::tuple<ssize_t,Effect3D*,CustomCommand> &tuple2 )
 {
     return std::get<0>(tuple1) < std::get<0>(tuple2);
@@ -552,7 +557,7 @@ void Effect3DOutline::draw(const Mat4 &transform)
             _glProgramState->apply(transform);
  
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->getIndexBuffer());
-        glDrawElements(mesh->getPrimitiveType(), mesh->getIndexCount(), mesh->getIndexFormat(), 0);
+        glDrawElements(mesh->getPrimitiveType(), (GLsizei)mesh->getIndexCount(), mesh->getIndexFormat(), 0);
         CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, mesh->getIndexCount());
         
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -1015,7 +1020,7 @@ Sprite3DReskinTest::Sprite3DReskinTest()
     item3->setPosition( Vec2(VisibleRect::left().x+50, VisibleRect::bottom().y+item1->getContentSize().height*6 ) );
     item4->setPosition( Vec2(VisibleRect::left().x+50, VisibleRect::bottom().y+item1->getContentSize().height *7 ) );
     item5->setPosition( Vec2(VisibleRect::left().x+50, VisibleRect::bottom().y+item1->getContentSize().height *8 ) );
-    auto pMenu1 = CCMenu::create(item1,item2,item3,item4,item5,NULL);
+    auto pMenu1 = CCMenu::create(item1, item2, item3, item4, item5, nullptr);
     pMenu1->setPosition(Vec2(0,0));
     this->addChild(pMenu1, 10);
     
@@ -1257,17 +1262,17 @@ void Sprite3DWithOBBPerfromanceTest::onTouchesBegan(const std::vector<Touch*>& t
     for (auto touch: touches)
     {
         auto location = touch->getLocationInView();
-        
-        if(_obb.size() > 0)
+        auto obbSize = _obb.size();
+        if(obbSize)
         {
             _intersetList.clear();
             Ray ray;
             calculateRayByLocationInView(&ray,location);
-            for(int i = 0; i < _obb.size(); i++)
+            for(decltype(obbSize) i = 0; i < obbSize; i++)
             {
                 if(ray.intersects(_obb[i]))
                 {
-                    _intersetList.insert(i);
+                    _intersetList.insert((int)i);
                     return;
                 }
             }
@@ -1284,11 +1289,12 @@ void Sprite3DWithOBBPerfromanceTest::onTouchesMoved(const std::vector<Touch*>& t
 {
     for (auto touch: touches)
     {
-        auto location = touch->getLocation();
-        
-        for(int i = 0; i < _obb.size(); i++)
+        auto location = touch->getLocation();       
+        auto obbSize = _obb.size();
+
+        for(decltype(obbSize) i = 0; i < obbSize; i++)
         {
-            if(_intersetList.find(i) != _intersetList.end())
+            if(_intersetList.find((int)i) != _intersetList.end())
                 _obb[i]._center = Vec3(location.x,location.y,0);
         }
     }
@@ -1323,7 +1329,8 @@ void Sprite3DWithOBBPerfromanceTest::update(float dt)
     if(_obb.size() > 0)
     {
         _drawOBB->clear();
-        for(int i =0; i < _obb.size(); i++)
+        auto obbSize = _obb.size();
+        for(decltype(obbSize) i =0; i < obbSize; i++)
         {
             Vec3 corners[8] = {};
             _obb[i].getCorners(corners);

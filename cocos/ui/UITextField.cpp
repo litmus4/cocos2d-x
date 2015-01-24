@@ -329,9 +329,9 @@ TextField* TextField::create(const std::string &placeholder, const std::string &
     TextField* widget = new (std::nothrow) TextField();
     if (widget && widget->init())
     {
-        widget->setPlaceHolder(placeholder);
         widget->setFontName(fontName);
         widget->setFontSize(fontSize);
+        widget->setPlaceHolder(placeholder);
         widget->autorelease();
         return widget;
     }
@@ -766,6 +766,19 @@ void TextField::textfieldRendererScaleChangedWithSize()
         _textFieldRenderer->setDimensions(_contentSize.width, _contentSize.height);
     }
     _textFieldRenderer->setPosition(_contentSize.width / 2.0f, _contentSize.height / 2.0f);
+}
+
+Size TextField::getAutoRenderSize()
+{
+    Size virtualSize = _textFieldRenderer->getContentSize();
+    if (!_ignoreSize)
+    {
+        _textFieldRenderer->setDimensions(0, 0);
+        virtualSize = _textFieldRenderer->getContentSize();
+        _textFieldRenderer->setDimensions(_contentSize.width, _contentSize.height);
+    }
+
+    return virtualSize;
 }
 
 Size TextField::getVirtualRendererSize() const

@@ -50,7 +50,11 @@ const char* GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP = "ShaderPositi
 const char* GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST = "ShaderPositionTextureColorAlphaTest";
 const char* GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST_NO_MV = "ShaderPositionTextureColorAlphaTest_NoMV";
 const char* GLProgram::SHADER_NAME_POSITION_COLOR = "ShaderPositionColor";
+const char* GLProgram::SHADER_NAME_POSITION_COLOR_TEXASPOINTSIZE = "ShaderPositionColorTexAsPointsize";
 const char* GLProgram::SHADER_NAME_POSITION_COLOR_NO_MVP = "ShaderPositionColor_noMVP";
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WP8 || defined(WP8_SHADER_COMPILER)
+const char* GLProgram::SHADER_NAME_POSITION_COLOR_NO_MVP_GRAYSCALE = "ShaderPositionColor_noMVP_GrayScale";
+#endif
 const char* GLProgram::SHADER_NAME_POSITION_TEXTURE = "ShaderPositionTexture";
 const char* GLProgram::SHADER_NAME_POSITION_TEXTURE_U_COLOR = "ShaderPositionTexture_uColor";
 const char* GLProgram::SHADER_NAME_POSITION_TEXTURE_A8_COLOR = "ShaderPositionTextureA8Color";
@@ -595,18 +599,36 @@ void GLProgram::use()
     GL::useProgram(_program);
 }
 
-std::string GLProgram::logForOpenGLObject(GLuint object, GLInfoFunction infoFunc, GLLogFunction logFunc) const
+static std::string logForOpenGLShader(GLuint shader)
 {
     std::string ret;
     GLint logLength = 0, charsWritten = 0;
 
-    infoFunc(object, GL_INFO_LOG_LENGTH, &logLength);
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength < 1)
         return "";
 
-    char *logBytes = (char*)malloc(logLength);
-    logFunc(object, logLength, &charsWritten, logBytes);
+    char *logBytes = (char*)malloc(logLength + 1);
+    glGetShaderInfoLog(shader, logLength, &charsWritten, logBytes);
+    logBytes[logLength] = '\0';
+    ret = logBytes;
 
+    free(logBytes);
+    return ret;
+}
+
+static std::string logForOpenGLProgram(GLuint program)
+{
+    std::string ret;
+    GLint logLength = 0, charsWritten = 0;
+
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength < 1)
+        return "";
+
+    char *logBytes = (char*)malloc(logLength + 1);
+    glGetProgramInfoLog(program, logLength, &charsWritten, logBytes);
+    logBytes[logLength] = '\0';
     ret = logBytes;
 
     free(logBytes);
@@ -615,17 +637,17 @@ std::string GLProgram::logForOpenGLObject(GLuint object, GLInfoFunction infoFunc
 
 std::string GLProgram::getVertexShaderLog() const
 {
-    return this->logForOpenGLObject(_vertShader, (GLInfoFunction)&glGetShaderiv, (GLLogFunction)&glGetShaderInfoLog);
+    return cocos2d::logForOpenGLShader(_vertShader);
 }
 
 std::string GLProgram::getFragmentShaderLog() const
 {
-    return this->logForOpenGLObject(_fragShader, (GLInfoFunction)&glGetShaderiv, (GLLogFunction)&glGetShaderInfoLog);
+    return cocos2d::logForOpenGLShader(_fragShader);
 }
 
 std::string GLProgram::getProgramLog() const
 {
-    return this->logForOpenGLObject(_program, (GLInfoFunction)&glGetProgramiv, (GLLogFunction)&glGetProgramInfoLog);
+    return logForOpenGLProgram(_program);
 }
 
 // Uniform cache

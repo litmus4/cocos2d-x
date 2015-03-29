@@ -1333,6 +1333,12 @@
     <ClCompile Include="..\3d\CCAABB.cpp">
       <Filter>3d</Filter>
     </ClCompile>
+    <ClCompile Include="..\3d\CCSkybox.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCTextureCube.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\extensions\Particle3D\PU\CCPUAffector.cpp">
       <Filter>extension\Particle3D\ParticleUniverse</Filter>
     </ClCompile>
@@ -1785,6 +1791,9 @@
     </ClCompile>
     <ClCompile Include="..\..\extensions\Particle3D\CCParticleSystem3D.cpp">
       <Filter>extension\Particle3D</Filter>
+    </ClCompile>
+    <ClCompile Include="..\editor-support\cocostudio\CCObjectExtensionData.cpp">
+      <Filter>cocostudio\json</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3037,6 +3046,12 @@
     <ClInclude Include="..\physics\CCPhysicsHelper.h">
       <Filter>physics</Filter>
     </ClInclude>
+    <ClInclude Include="..\3d\CCSkybox.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCTextureCube.h">
+      <Filter>3d</Filter>
+    </ClInclude>
     <ClInclude Include="..\platform\CCPlatformConfig.h">
       <Filter>platform</Filter>
     </ClInclude>
@@ -3495,6 +3510,9 @@
     </ClInclude>
     <ClInclude Include="..\..\extensions\Particle3D\CCParticleSystem3D.h">
       <Filter>extension\Particle3D</Filter>
+    </ClInclude>
+    <ClInclude Include="..\editor-support\cocostudio\CCObjectExtensionData.h">
+      <Filter>cocostudio\json</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

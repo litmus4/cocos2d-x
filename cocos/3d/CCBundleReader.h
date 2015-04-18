@@ -41,6 +41,8 @@ NS_CC_BEGIN
 
 /**
  * @brief BundleReader is an interface for reading sequence of bytes.
+ * @js NA
+ * @lua NA
  */
 class BundleReader: public cocos2d::Ref
 {
@@ -127,6 +129,8 @@ private:
     char* _buffer;
 };
 
+/// @cond 
+
 /**
 * template read routines
 */
@@ -206,7 +210,9 @@ inline bool BundleReader::readArray<std::string>(unsigned int *length, std::vect
     return true;
 }
 
-// end of actions group
+/// @endcond
+
+// end of 3d group
 /// @}
 
 NS_CC_END

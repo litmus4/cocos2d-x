@@ -16,9 +16,9 @@ TerrainSimple::TerrainSimple()
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
     //use custom camera
-    _camera = Camera::createPerspective(60,visibleSize.width/visibleSize.height,0.1,800);
+    _camera = Camera::createPerspective(60,visibleSize.width/visibleSize.height,0.1f,800);
     _camera->setCameraFlag(CameraFlag::USER1);
-    _camera->setPosition3D(Vec3(-1,1.6,4));
+    _camera->setPosition3D(Vec3(-1,1.6f,4));
     addChild(_camera);
 
     Terrain::DetailMap r("TerrainTest/dirt.jpg"),g("TerrainTest/Grass2.jpg"),b("TerrainTest/road.jpg"),a("TerrainTest/GreenSkin.jpg");
@@ -26,7 +26,7 @@ TerrainSimple::TerrainSimple()
     Terrain::TerrainData data("TerrainTest/heightmap16.jpg","TerrainTest/alphamap.png",r,g,b,a);
 
     _terrain = Terrain::create(data,Terrain::CrackFixedType::SKIRT);
-    _terrain->setLODDistance(3.2,6.4,9.6);
+    _terrain->setLODDistance(3.2f,6.4f,9.6f);
     _terrain->setMaxDetailMapAmount(4);
     addChild(_terrain);
     _terrain->setCameraMask(2);
@@ -34,6 +34,12 @@ TerrainSimple::TerrainSimple()
     auto listener = EventListenerTouchAllAtOnce::create();
     listener->onTouchesMoved = CC_CALLBACK_2(TerrainSimple::onTouchesMoved, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    // add Particle3D for test blend
+    auto rootps = PUParticleSystem3D::create("Particle3D/scripts/mp_torch.pu");
+    rootps->setCameraMask((unsigned short)CameraFlag::USER1);
+    rootps->startParticleSystem();
+    
+    this->addChild(rootps, 0, 0);
 }
 
 std::string TerrainSimple::title() const 
@@ -89,7 +95,7 @@ TerrainWalkThru::TerrainWalkThru()
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
     //use custom camera
-    _camera = Camera::createPerspective(60,visibleSize.width/visibleSize.height,0.1,200);
+    _camera = Camera::createPerspective(60,visibleSize.width/visibleSize.height,0.1f,200);
     _camera->setCameraFlag(CameraFlag::USER1);
     addChild(_camera);
 
@@ -105,8 +111,21 @@ TerrainWalkThru::TerrainWalkThru()
     _terrain->setLODDistance(64,128,192);
     _player = Player::create("Sprite3DTest/girl.c3b",_camera,_terrain);
     _player->setCameraMask(2);
-    _player->setScale(0.08);
+    _player->setScale(0.08f);
     _player->setPositionY(_terrain->getHeight(_player->getPositionX(),_player->getPositionZ())+PLAYER_HEIGHT);
+    
+    // add Particle3D for test blend
+    auto rootps = PUParticleSystem3D::create("Particle3D/scripts/mp_torch.pu");
+    rootps->setCameraMask((unsigned short)CameraFlag::USER1);
+    rootps->setScale(30.0f);
+    rootps->startParticleSystem();
+    _player->addChild(rootps);
+    
+    // add BillBoard for test blend
+    auto billboard = BillBoard::create("Images/btn-play-normal.png");
+    billboard->setPosition3D(Vec3(0,180,0));
+    billboard->setCameraMask((unsigned short)CameraFlag::USER1);
+    _player->addChild(billboard);
 
     auto animation = Animation3D::create("Sprite3DTest/girl.c3b","Take 001");
     if (animation)
@@ -227,12 +246,16 @@ void Player::update(float dt)
     default:
         break;
     }
+    // transform player position to world coord
+    auto playerPos = player->getPosition3D();
+    auto playerModelMat = player->getParent()->getNodeToWorldTransform();
+    playerModelMat.transformPoint(&playerPos);
     Vec3 Normal;
-    float player_h = _terrain->getHeight(player->getPositionX(),player->getPositionZ(),&Normal);
+    float player_h = _terrain->getHeight(playerPos.x, playerPos.z,&Normal);
 
     player->setPositionY(player_h+PLAYER_HEIGHT);
     Quaternion q2;
-    q2.createFromAxisAngle(Vec3(0,1,0),-M_PI,&q2);
+    q2.createFromAxisAngle(Vec3(0,1,0),(float)-M_PI,&q2);
  
     Quaternion headingQ;
     headingQ.createFromAxisAngle(_headingAxis,_headingAngle,&headingQ);

@@ -7,6 +7,8 @@ DEFINE_TEST_SUITE(LayerTests);
 
 class LayerTest : public TestCase
 {
+public:
+    virtual std::string title() const override;
 protected:
     std::string    _title;
 };
@@ -110,15 +112,6 @@ class LayerGradientTest2 : public LayerTest
 public:
     CREATE_FUNC(LayerGradientTest2);
     LayerGradientTest2();
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-};
-
-class LayerGradientTest3 : public LayerTest
-{
-public:
-    CREATE_FUNC(LayerGradientTest3);
-    LayerGradientTest3();
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 };

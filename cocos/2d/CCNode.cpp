@@ -44,6 +44,7 @@ THE SOFTWARE.
 #include "2d/CCComponentContainer.h"
 #include "renderer/CCGLProgram.h"
 #include "renderer/CCGLProgramState.h"
+#include "renderer/CCMaterial.h"
 #include "math/TransformUtils.h"
 
 #include "deprecated/CCString.h"
@@ -83,14 +84,11 @@ Node::Node(void)
 , _scaleX(1.0f)
 , _scaleY(1.0f)
 , _scaleZ(1.0f)
-, _position(Vec2::ZERO)
 , _positionZ(0.0f)
 , _usingNormalizedPosition(false)
 , _normalizedPositionDirty(false)
 , _skewX(0.0f)
 , _skewY(0.0f)
-, _anchorPointInPoints(Vec2::ZERO)
-, _anchorPoint(Vec2::ZERO)
 , _contentSize(Size::ZERO)
 , _contentSizeDirty(true)
 , _transformDirty(true)
@@ -723,7 +721,7 @@ void Node::setAnchorPoint(const Vec2& point)
     if (! point.equals(_anchorPoint))
     {
         _anchorPoint = point;
-        _anchorPointInPoints = Vec2(_contentSize.width * _anchorPoint.x, _contentSize.height * _anchorPoint.y);
+        _anchorPointInPoints.set(_contentSize.width * _anchorPoint.x, _contentSize.height * _anchorPoint.y);
         _transformUpdated = _transformDirty = _inverseDirty = true;
     }
 }
@@ -740,7 +738,7 @@ void Node::setContentSize(const Size & size)
     {
         _contentSize = size;
 
-        _anchorPointInPoints = Vec2(_contentSize.width * _anchorPoint.x, _contentSize.height * _anchorPoint.y);
+        _anchorPointInPoints.set(_contentSize.width * _anchorPoint.x, _contentSize.height * _anchorPoint.y);
         _transformUpdated = _transformDirty = _inverseDirty = _contentSizeDirty = true;
     }
 }
@@ -814,7 +812,7 @@ void Node::setOrderOfArrival(int orderOfArrival)
     _orderOfArrival = orderOfArrival;
 }
 
-void Node::setUserObject(Ref *userObject)
+void Node::setUserObject(Ref* userObject)
 {
     CC_SAFE_RETAIN(userObject);
     CC_SAFE_RELEASE(_userObject);
@@ -826,23 +824,29 @@ GLProgramState* Node::getGLProgramState() const
     return _glProgramState;
 }
 
-void Node::setGLProgramState(cocos2d::GLProgramState *glProgramState)
+void Node::setGLProgramState(cocos2d::GLProgramState* glProgramState)
 {
     if (glProgramState != _glProgramState)
     {
         CC_SAFE_RELEASE(_glProgramState);
         _glProgramState = glProgramState;
         CC_SAFE_RETAIN(_glProgramState);
+
+        if (_glProgramState)
+            _glProgramState->setNodeBinding(this);
     }
 }
 
-void Node::setGLProgram(GLProgram *glProgram)
+
+void Node::setGLProgram(GLProgram* glProgram)
 {
     if (_glProgramState == nullptr || (_glProgramState && _glProgramState->getGLProgram() != glProgram))
     {
         CC_SAFE_RELEASE(_glProgramState);
         _glProgramState = GLProgramState::getOrCreateWithGLProgram(glProgram);
         _glProgramState->retain();
+
+        _glProgramState->setNodeBinding(this);
     }
 }
 
@@ -881,9 +885,9 @@ void Node::childrenAlloc()
 
 Node* Node::getChildByTag(int tag) const
 {
-    CCASSERT( tag != Node::INVALID_TAG, "Invalid tag");
+    CCASSERT(tag != Node::INVALID_TAG, "Invalid tag");
 
-    for (const auto& child : _children)
+    for (const auto child : _children)
     {
         if(child && child->_tag == tag)
             return child;
@@ -1315,6 +1319,12 @@ uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFl
             _normalizedPositionDirty = false;
         }
     }
+
+    //remove this two line given that isVisitableByVisitingCamera should not affect the calculation of transform given that we are visiting scene
+    //without involving view and projection matrix.
+    
+//    if (!isVisitableByVisitingCamera())
+//        return parentFlags;
     
     uint32_t flags = parentFlags;
     flags |= (_transformUpdated ? FLAGS_TRANSFORM_DIRTY : 0);
@@ -1409,6 +1419,11 @@ void Node::onEnter()
     if (_onEnterCallback)
         _onEnterCallback();
 
+    if (_componentContainer && !_componentContainer->isEmpty())
+    {
+        _componentContainer->onEnter();
+    }
+
 #if CC_ENABLE_SCRIPT_BINDING
     if (_scriptType == kScriptTypeJavascript)
     {
@@ -1488,6 +1503,11 @@ void Node::onExit()
     if (_onExitCallback)
         _onExitCallback();
     
+    if (_componentContainer && !_componentContainer->isEmpty())
+    {
+        _componentContainer->onExit();
+    }
+
 #if CC_ENABLE_SCRIPT_BINDING
     if (_scriptType == kScriptTypeJavascript)
     {
@@ -1768,7 +1788,7 @@ const Mat4& Node::getNodeToParentTransform() const
         Vec2 anchorPoint(_anchorPointInPoints.x * _scaleX, _anchorPointInPoints.y * _scaleY);
         
         // caculate real position
-        if (! needsSkewMatrix && !_anchorPointInPoints.equals(Vec2::ZERO))
+        if (! needsSkewMatrix && !_anchorPointInPoints.isZero())
         {
             x += -anchorPoint.x;
             y += -anchorPoint.y;
@@ -1831,7 +1851,7 @@ const Mat4& Node::getNodeToParentTransform() const
             _transform = _transform * skewMatrix;
             
             // adjust anchor point
-            if (!_anchorPointInPoints.equals(Vec2::ZERO))
+            if (!_anchorPointInPoints.isZero())
             {
                 // FIXME:: Argh, Mat4 needs a "translate" method.
                 // FIXME:: Although this is faster than multiplying a vec4 * mat4

@@ -29,6 +29,8 @@ set(TESTS_SRC
   Classes/AppDelegate.cpp
   Classes/BaseTest.cpp
   Classes/BillBoardTest/BillBoardTest.cpp
+  Classes/BugsTest/Bug-CCDrawNode.cpp
+  Classes/BugsTest/Bug-PageViewLayout.cpp
   Classes/BugsTest/Bug-1159.cpp
   Classes/BugsTest/Bug-1174.cpp
   Classes/BugsTest/Bug-350.cpp
@@ -169,6 +171,7 @@ set(TESTS_SRC
   Classes/UITest/CocoStudioGUITest/UIButtonTest/UIButtonTest_Editor.cpp
   Classes/UITest/CocoStudioGUITest/UICheckBoxTest/UICheckBoxTest.cpp
   Classes/UITest/CocoStudioGUITest/UICheckBoxTest/UICheckBoxTest_Editor.cpp
+  Classes/UITest/CocoStudioGUITest/UIRadioButtonTest/UIRadioButtonTest.cpp
   Classes/UITest/CocoStudioGUITest/UIFocusTest/UIFocusTest.cpp
   Classes/UITest/CocoStudioGUITest/UIImageViewTest/UIImageViewTest.cpp
   Classes/UITest/CocoStudioGUITest/UIImageViewTest/UIImageViewTest_Editor.cpp
@@ -205,6 +208,7 @@ set(TESTS_SRC
   Classes/UnitTest/UnitTest.cpp
   Classes/UserDefaultTest/UserDefaultTest.cpp
   Classes/VisibleRect.cpp
+  Classes/VibrateTest/VibrateTest.cpp
   Classes/ZwoptexTest/ZwoptexTest.cpp
   Classes/controller.cpp
   Classes/testBasic.cpp

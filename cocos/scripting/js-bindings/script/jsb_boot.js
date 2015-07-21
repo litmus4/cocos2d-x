@@ -102,7 +102,7 @@ cc.isString = function(obj) {
  */
 cc.isArray = function(obj) {
     return Array.isArray(obj) ||
-        (typeof obj === 'object' && objectToString(obj) === '[object Array]');
+        (typeof obj === 'object' && Object.prototype.toString.call(obj) === '[object Array]');
 };
 
 /**
@@ -367,6 +367,20 @@ cc.path = {
         if(index < 0) return null;
         return pathStr.substring(index, pathStr.length);
     },
+
+    /**
+     * Get the main name of a file name
+     * @param {string} fileName
+     * @returns {string}
+     */
+    mainFileName: function(fileName){
+        if(fileName){
+           var idx = fileName.lastIndexOf(".");
+            if(idx !== -1)
+               return fileName.substring(0,idx);
+        }
+        return fileName;
+    },
     
     /**
      * Get the file name of a file path.
@@ -625,15 +639,18 @@ cc.loader = {
         }
         var basePath = loader.getBasePath ? loader.getBasePath() : self.resPath;
         var realUrl = self.getUrl(basePath, url);
-        var data = loader.load(realUrl, url);
-        if (data) {
-            self.cache[url] = data;
-            cb(null, data);
-        } else {
-            self.cache[url] = null;
-            delete self.cache[url];
-            cb();
-        }
+
+        loader.load(realUrl, url, item, function (err, data) {
+            if (err) {
+                cc.log(err);
+                self.cache[url] = null;
+                delete self.cache[url];
+                cb();
+            } else {
+                self.cache[url] = data;
+                cb(null, data);
+            }
+        });
     },
     
     /**
@@ -776,13 +793,18 @@ cc.loader = {
      * Release the cache of resource by url.
      * @param url
      */
-    release : function(url){//do nothing in jsb
+    release : function(url){
+        var cache = this.cache;
+        delete cache[url];
     },
     
     /**
      * Resource cache of all resources.
      */
-    releaseAll : function(){//do nothing in jsb
+    releaseAll : function(){
+        var locCache = this.cache;
+        for (var key in locCache)
+            delete locCache[key];
     }
     
 };
@@ -1477,12 +1499,15 @@ cc._initSys = function(config, CONFIG_KEY){
     if( locSys.isMobile ) {
         capabilities["accelerometer"] = true;
         capabilities["touches"] = true;
+        if (platform === locSys.WINRT || platform === locSys.WP8) {
+            capabilities["keyboard"] = true;
+        }
     } else {
         // desktop
         capabilities["keyboard"] = true;
         capabilities["mouse"] = true;
         // winrt can't suppot mouse in current version
-        if (platform === locSys.WINRT)
+        if (platform === locSys.WINRT || platform === locSys.WP8)
         {
             capabilities["touches"] = true;
             capabilities["mouse"] = false;

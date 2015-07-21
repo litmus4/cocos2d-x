@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-*- coding: UTF-8 -*-
+#-*- coding: utf-8 -*-
 
 import os
 import sys
@@ -19,10 +19,13 @@ def is_32bit_windows():
 def os_is_mac():
     return sys.platform == 'darwin'
 
+def os_is_linux():
+    return sys.platform == "linux" or sys.platform == "linux2"
+
 def convert_to_python_path(path):
     return path.replace("\\","/")
 
-def execute_command(cmdstring, cwd=None, timeout=None, shell=True):
+def execute_command(cmdstring, cwd=None, timeout=None, shell=True, use_py_path=True):
     """ 执行一个SHELL命令
         封装了subprocess的Popen方法, 支持超时判断，支持读取stdout和stderr
         参数:
@@ -38,7 +41,7 @@ def execute_command(cmdstring, cwd=None, timeout=None, shell=True):
     import subprocess
     import time
 
-    if os_is_win32():
+    if os_is_win32() and use_py_path:
         cmdstring = convert_to_python_path(cmdstring)
 
     print("")
@@ -92,26 +95,25 @@ def get_vs_cmd_path(vs_version):
         reg_flag_list = [ _winreg.KEY_WOW64_64KEY, _winreg.KEY_WOW64_32KEY ]
 
     # Find VS path
-    vsPath = None
+    msbuild_path = None
     for reg_flag in reg_flag_list:
         try:
             vs = _winreg.OpenKey(
                 _winreg.HKEY_LOCAL_MACHINE,
-                r"SOFTWARE\Microsoft\VisualStudio",
+                r"SOFTWARE\Microsoft\MSBuild\ToolsVersions\%s" % vs_ver,
                 0,
                 _winreg.KEY_READ | reg_flag
             )
-            key = _winreg.OpenKey(vs, r"SxS\VS7")
-            vsPath, type = _winreg.QueryValueEx(key, vs_ver)
+            msbuild_path, type = _winreg.QueryValueEx(vs, 'MSBuildToolsPath')
         except:
             continue
 
-        if vsPath is not None:
+        if msbuild_path is not None and os.path.exists(msbuild_path):
             break
 
     # generate devenv path
-    if vsPath is not None:
-        commandPath = os.path.join(vsPath, "Common7", "IDE", "devenv")
+    if msbuild_path is not None:
+        commandPath = os.path.join(msbuild_path, "MSBuild.exe")
     else:
         commandPath = None
 
@@ -120,7 +122,7 @@ def get_vs_cmd_path(vs_version):
 def rmdir(folder):
     if os.path.exists(folder):
         if sys.platform == 'win32':
-            execute_command("rd /s/q %s" % folder)
+            execute_command("rd /s/q \"%s\"" % folder)
         else:
             shutil.rmtree(folder)
 

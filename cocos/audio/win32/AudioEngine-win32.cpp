@@ -103,7 +103,7 @@ bool AudioEngineImpl::init()
     return ret;
 }
 
-AudioCache* AudioEngineImpl::preload(const std::string& filePath)
+AudioCache* AudioEngineImpl::preload(const std::string& filePath, std::function<void(bool)> callback)
 {
     AudioCache* audioCache = nullptr;
 
@@ -113,31 +113,41 @@ AudioCache* AudioEngineImpl::preload(const std::string& filePath)
         if (it != _audioCaches.end())
         {
             audioCache = &it->second;
+            if (callback && audioCache->_alBufferReady)
+            {
+                callback(true);
+            }
             break;
         }
 
-        auto ext = strchr(filePath.c_str(), '.');
         AudioCache::FileFormat fileFormat = AudioCache::FileFormat::UNKNOWN;
 
-        if (_stricmp(ext, ".ogg") == 0){
+        std::string fileExtension = FileUtils::getInstance()->getFileExtension(filePath);
+        if (fileExtension == ".ogg")
+        {
             fileFormat = AudioCache::FileFormat::OGG;
         }
-        else if (_stricmp(ext, ".mp3") == 0){
+        else if (fileExtension == ".mp3")
+        {
             fileFormat = AudioCache::FileFormat::MP3;
 
-            if (MPG123_LAZYINIT){
+            if (MPG123_LAZYINIT)
+            {
                 auto error = mpg123_init();
-                if (error == MPG123_OK){
+                if (error == MPG123_OK)
+                {
                     MPG123_LAZYINIT = false;
                 }
-                else{
+                else
+                {
                     log("Basic setup goes wrong: %s", mpg123_plain_strerror(error));
                     break;
                 }
             }
         }
-        else{
-            log("unsupported media type:%s\n", ext);
+        else
+        {
+            log("Unsupported media type file: %s\n", filePath.c_str());
             break;
         }
 
@@ -147,6 +157,18 @@ AudioCache* AudioEngineImpl::preload(const std::string& filePath)
         audioCache->_fileFullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
         AudioEngine::addTask(std::bind(&AudioCache::readDataTask, audioCache));
     } while (false);
+
+    if (callback)
+    {
+        if (audioCache)
+        {
+            audioCache->addLoadCallback(callback);
+        } 
+        else
+        {
+            callback(false);
+        }
+    }
 
     return audioCache;
 }
@@ -166,7 +188,7 @@ int AudioEngineImpl::play2d(const std::string &filePath ,bool loop ,float volume
         return AudioEngine::INVALID_AUDIO_ID;
     }
     
-    AudioCache* audioCache = preload(filePath);
+    AudioCache* audioCache = preload(filePath, nullptr);
     if (audioCache == nullptr)
     {
         return AudioEngine::INVALID_AUDIO_ID;
@@ -176,7 +198,7 @@ int AudioEngineImpl::play2d(const std::string &filePath ,bool loop ,float volume
     player->_alSource = alSource;
     player->_loop = loop;
     player->_volume = volume;
-    audioCache->addCallbacks(std::bind(&AudioEngineImpl::_play2d,this,audioCache,_currentAudioID));
+    audioCache->addPlayCallback(std::bind(&AudioEngineImpl::_play2d, this, audioCache, _currentAudioID));
     
     _alSourceUsed[alSource] = true;
     

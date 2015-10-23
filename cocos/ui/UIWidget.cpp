@@ -223,6 +223,14 @@ bool Widget::init()
 
 void Widget::onEnter()
 {
+#if CC_ENABLE_SCRIPT_BINDING
+    if (_scriptType == kScriptTypeJavascript)
+    {
+        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnEnter))
+            return;
+    }
+#endif
+    
     if (!_usingLayoutComponent)
         updateSizeAndPosition();
     ProtectedNode::onEnter();
@@ -230,6 +238,14 @@ void Widget::onEnter()
 
 void Widget::onExit()
 {
+#if CC_ENABLE_SCRIPT_BINDING
+    if (_scriptType == kScriptTypeJavascript)
+    {
+        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnExit))
+            return;
+    }
+#endif
+    
     unscheduleUpdate();
     ProtectedNode::onExit();
 }
@@ -251,6 +267,7 @@ Widget* Widget::getWidgetParent()
 void Widget::setEnabled(bool enabled)
 {
     _enabled = enabled;
+    setBright(enabled);
 }
 
 void Widget::initRenderer()
@@ -272,6 +289,11 @@ LayoutComponent* Widget::getOrCreateLayoutComponent()
 
 void Widget::setContentSize(const cocos2d::Size &contentSize)
 {
+    Size previousSize = ProtectedNode::getContentSize();
+    if(previousSize.equals(contentSize))
+    {
+        return;
+    }
     ProtectedNode::setContentSize(contentSize);
 
     _customSize = contentSize;
@@ -587,10 +609,6 @@ bool Widget::isHighlighted() const
 
 void Widget::setHighlighted(bool hilight)
 {
-    if (hilight == _highlight)
-    {
-        return;
-    }
     _highlight = hilight;
     if (_bright)
     {
@@ -754,8 +772,8 @@ bool Widget::onTouchBegan(Touch *touch, Event *unusedEvent)
         auto camera = Camera::getVisitingCamera();
         if(hitTest(_touchBeganPosition, camera, nullptr))
         {
-            _hittedByCamera = camera;
             if (isClippingParentContainsPoint(_touchBeganPosition)) {
+                _hittedByCamera = camera;
                 _hitted = true;
             }
         }
@@ -958,7 +976,9 @@ bool Widget::isClippingParentContainsPoint(const Vec2 &pt)
     if (clippingParent)
     {
         bool bRet = false;
-        if (clippingParent->hitTest(pt, _hittedByCamera, nullptr))
+        auto camera = Camera::getVisitingCamera();
+        // Camera isn't null means in touch begin process, otherwise use _hittedByCamera instead.
+        if (clippingParent->hitTest(pt, (camera ? camera : _hittedByCamera), nullptr))
         {
             bRet = true;
         }

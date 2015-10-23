@@ -1369,6 +1369,16 @@ getTitleRenderer : function (
 },
 
 /**
+ * @method getRendererClicked
+ * @return {ccui.Scale9Sprite}
+ */
+getRendererClicked : function (
+)
+{
+    return ccui.Scale9Sprite;
+},
+
+/**
  * @method getZoomScale
  * @return {float}
  */
@@ -1396,6 +1406,16 @@ setTitleColor : function (
 color3b 
 )
 {
+},
+
+/**
+ * @method getRendererDisabled
+ * @return {ccui.Scale9Sprite}
+ */
+getRendererDisabled : function (
+)
+{
+    return ccui.Scale9Sprite;
 },
 
 /**
@@ -1581,6 +1601,16 @@ getTitleFontSize : function (
 },
 
 /**
+ * @method getRendererNormal
+ * @return {ccui.Scale9Sprite}
+ */
+getRendererNormal : function (
+)
+{
+    return ccui.Scale9Sprite;
+},
+
+/**
  * @method getTitleFontName
  * @return {String}
  */
@@ -1699,6 +1729,26 @@ bool
 },
 
 /**
+ * @method getRendererFrontCrossDisabled
+ * @return {cc.Sprite}
+ */
+getRendererFrontCrossDisabled : function (
+)
+{
+    return cc.Sprite;
+},
+
+/**
+ * @method getRendererBackground
+ * @return {cc.Sprite}
+ */
+getRendererBackground : function (
+)
+{
+    return cc.Sprite;
+},
+
+/**
  * @method loadTextureFrontCross
  * @param {String} arg0
  * @param {ccui.Widget::TextureResType} arg1
@@ -1708,6 +1758,16 @@ str,
 texturerestype 
 )
 {
+},
+
+/**
+ * @method getRendererBackgroundDisabled
+ * @return {cc.Sprite}
+ */
+getRendererBackgroundDisabled : function (
+)
+{
+    return cc.Sprite;
 },
 
 /**
@@ -1770,6 +1830,26 @@ getZoomScale : function (
 )
 {
     return 0;
+},
+
+/**
+ * @method getRendererFrontCross
+ * @return {cc.Sprite}
+ */
+getRendererFrontCross : function (
+)
+{
+    return cc.Sprite;
+},
+
+/**
+ * @method getRendererBackgroundSelected
+ * @return {cc.Sprite}
+ */
+getRendererBackgroundSelected : function (
+)
+{
+    return cc.Sprite;
 },
 
 /**
@@ -1945,6 +2025,24 @@ getSelectedButtonIndex : function (
  */
 setAllowedNoSelection : function (
 bool 
+)
+{
+},
+
+/**
+ * @method setSelectedButtonWithoutEvent
+* @param {ccui.RadioButton|int} radiobutton
+*/
+setSelectedButtonWithoutEvent : function(
+int 
+)
+{
+},
+
+/**
+ * @method removeAllRadioButtons
+ */
+removeAllRadioButtons : function (
 )
 {
 },
@@ -2143,7 +2241,7 @@ enableShadow : function (
 
 /**
  * @method getFontSize
- * @return {int}
+ * @return {float}
  */
 getFontSize : function (
 )
@@ -2225,13 +2323,13 @@ str
  * @method init
  * @param {String} arg0
  * @param {String} arg1
- * @param {int} arg2
+ * @param {float} arg2
  * @return {bool}
  */
 init : function (
 str, 
 str, 
-int 
+float 
 )
 {
     return false;
@@ -2321,10 +2419,10 @@ getTextHorizontalAlignment : function (
 
 /**
  * @method setFontSize
- * @param {int} arg0
+ * @param {float} arg0
  */
 setFontSize : function (
-int 
+float 
 )
 {
 },
@@ -2383,13 +2481,13 @@ texthalignment
  * @method create
 * @param {String} str
 * @param {String} str
-* @param {int} int
+* @param {float} float
 * @return {ccui.Text|ccui.Text}
 */
 create : function(
 str,
 str,
-int 
+float 
 )
 {
     return ccui.Text;
@@ -3206,107 +3304,11 @@ ScrollView : function (
 ccui.ListView = {
 
 /**
- * @method getIndex
- * @param {ccui.Widget} arg0
- * @return {long}
- */
-getIndex : function (
-widget 
-)
-{
-    return 0;
-},
-
-/**
- * @method removeAllItems
- */
-removeAllItems : function (
-)
-{
-},
-
-/**
  * @method setGravity
  * @param {ccui.ListView::Gravity} arg0
  */
 setGravity : function (
 gravity 
-)
-{
-},
-
-/**
- * @method pushBackCustomItem
- * @param {ccui.Widget} arg0
- */
-pushBackCustomItem : function (
-widget 
-)
-{
-},
-
-/**
- * @method getItems
- * @return {Array}
- */
-getItems : function (
-)
-{
-    return new Array();
-},
-
-/**
- * @method removeItem
- * @param {long} arg0
- */
-removeItem : function (
-long 
-)
-{
-},
-
-/**
- * @method getCurSelectedIndex
- * @return {long}
- */
-getCurSelectedIndex : function (
-)
-{
-    return 0;
-},
-
-/**
- * @method insertDefaultItem
- * @param {long} arg0
- */
-insertDefaultItem : function (
-long 
-)
-{
-},
-
-/**
- * @method requestRefreshView
- */
-requestRefreshView : function (
-)
-{
-},
-
-/**
- * @method setItemsMargin
- * @param {float} arg0
- */
-setItemsMargin : function (
-float 
-)
-{
-},
-
-/**
- * @method refreshView
- */
-refreshView : function (
 )
 {
 },
@@ -3320,10 +3322,172 @@ removeLastItem : function (
 },
 
 /**
+ * @method getCenterItemInCurrentView
+ * @return {ccui.Widget}
+ */
+getCenterItemInCurrentView : function (
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method getCurSelectedIndex
+ * @return {long}
+ */
+getCurSelectedIndex : function (
+)
+{
+    return 0;
+},
+
+/**
  * @method getItemsMargin
  * @return {float}
  */
 getItemsMargin : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method jumpToItem
+ * @param {int} arg0
+ * @param {vec2_object} arg1
+ * @param {vec2_object} arg2
+ */
+jumpToItem : function (
+int, 
+vec2, 
+vec2 
+)
+{
+},
+
+/**
+ * @method setMagneticType
+ * @param {ccui.ListView::MagneticType} arg0
+ */
+setMagneticType : function (
+magnetictype 
+)
+{
+},
+
+/**
+ * @method getIndex
+ * @param {ccui.Widget} arg0
+ * @return {long}
+ */
+getIndex : function (
+widget 
+)
+{
+    return 0;
+},
+
+/**
+ * @method pushBackCustomItem
+ * @param {ccui.Widget} arg0
+ */
+pushBackCustomItem : function (
+widget 
+)
+{
+},
+
+/**
+ * @method insertDefaultItem
+ * @param {long} arg0
+ */
+insertDefaultItem : function (
+long 
+)
+{
+},
+
+/**
+ * @method setMagneticAllowedOutOfBoundary
+ * @param {bool} arg0
+ */
+setMagneticAllowedOutOfBoundary : function (
+bool 
+)
+{
+},
+
+/**
+ * @method doLayout
+ */
+doLayout : function (
+)
+{
+},
+
+/**
+ * @method getTopmostItemInCurrentView
+ * @return {ccui.Widget}
+ */
+getTopmostItemInCurrentView : function (
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method removeAllItems
+ */
+removeAllItems : function (
+)
+{
+},
+
+/**
+ * @method getBottommostItemInCurrentView
+ * @return {ccui.Widget}
+ */
+getBottommostItemInCurrentView : function (
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method getItems
+ * @return {Array}
+ */
+getItems : function (
+)
+{
+    return new Array();
+},
+
+/**
+ * @method getLeftmostItemInCurrentView
+ * @return {ccui.Widget}
+ */
+getLeftmostItemInCurrentView : function (
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method setItemsMargin
+ * @param {float} arg0
+ */
+setItemsMargin : function (
+float 
+)
+{
+},
+
+/**
+ * @method getMagneticType
+ * @return {ccui.ListView::MagneticType}
+ */
+getMagneticType : function (
 )
 {
     return 0;
@@ -3342,19 +3506,27 @@ long
 },
 
 /**
- * @method setItemModel
- * @param {ccui.Widget} arg0
+ * @method removeItem
+ * @param {long} arg0
  */
-setItemModel : function (
-widget 
+removeItem : function (
+long 
 )
 {
 },
 
 /**
- * @method doLayout
- */
-doLayout : function (
+ * @method scrollToItem
+* @param {int|int} int
+* @param {vec2_object|vec2_object} vec2
+* @param {vec2_object|vec2_object} vec2
+* @param {float} float
+*/
+scrollToItem : function(
+int,
+vec2,
+vec2,
+float 
 )
 {
 },
@@ -3363,6 +3535,64 @@ doLayout : function (
  * @method pushBackDefaultItem
  */
 pushBackDefaultItem : function (
+)
+{
+},
+
+/**
+ * @method getMagneticAllowedOutOfBoundary
+ * @return {bool}
+ */
+getMagneticAllowedOutOfBoundary : function (
+)
+{
+    return false;
+},
+
+/**
+ * @method getClosestItemToPosition
+ * @param {vec2_object} arg0
+ * @param {vec2_object} arg1
+ * @return {ccui.Widget}
+ */
+getClosestItemToPosition : function (
+vec2, 
+vec2 
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method getRightmostItemInCurrentView
+ * @return {ccui.Widget}
+ */
+getRightmostItemInCurrentView : function (
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method getClosestItemToPositionInCurrentView
+ * @param {vec2_object} arg0
+ * @param {vec2_object} arg1
+ * @return {ccui.Widget}
+ */
+getClosestItemToPositionInCurrentView : function (
+vec2, 
+vec2 
+)
+{
+    return ccui.Widget;
+},
+
+/**
+ * @method setItemModel
+ * @param {ccui.Widget} arg0
+ */
+setItemModel : function (
+widget 
 )
 {
 },
@@ -4496,6 +4726,16 @@ getCurPageIndex : function (
 },
 
 /**
+ * @method setDirection
+ * @param {ccui.PageView::Direction} arg0
+ */
+setDirection : function (
+direction 
+)
+{
+},
+
+/**
  * @method addWidgetToPage
  * @param {ccui.Widget} arg0
  * @param {long} arg1
@@ -4569,6 +4809,16 @@ layout,
 int 
 )
 {
+},
+
+/**
+ * @method getDirection
+ * @return {ccui.PageView::Direction}
+ */
+getDirection : function (
+)
+{
+    return 0;
 },
 
 /**
@@ -4681,6 +4931,18 @@ long
 )
 {
     return ;
+},
+
+/**
+ * @method convertBoundingBoxToScreen
+ * @param {cc.Node} arg0
+ * @return {rect_object}
+ */
+convertBoundingBoxToScreen : function (
+node 
+)
+{
+    return cc.Rect;
 },
 
 /**
@@ -6325,6 +6587,130 @@ node
  * @constructor
  */
 LayoutComponent : function (
+)
+{
+},
+
+};
+
+/**
+ * @class ScrollViewBar
+ */
+ccui.ScrollViewBar = {
+
+/**
+ * @method setAutoHideEnabled
+ * @param {bool} arg0
+ */
+setAutoHideEnabled : function (
+bool 
+)
+{
+},
+
+/**
+ * @method onScrolled
+ * @param {vec2_object} arg0
+ */
+onScrolled : function (
+vec2 
+)
+{
+},
+
+/**
+ * @method isAutoHideEnabled
+ * @return {bool}
+ */
+isAutoHideEnabled : function (
+)
+{
+    return false;
+},
+
+/**
+ * @method setAutoHideTime
+ * @param {float} arg0
+ */
+setAutoHideTime : function (
+float 
+)
+{
+},
+
+/**
+ * @method getWidth
+ * @return {float}
+ */
+getWidth : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method getPositionFromCorner
+ * @return {vec2_object}
+ */
+getPositionFromCorner : function (
+)
+{
+    return cc.Vec2;
+},
+
+/**
+ * @method setPositionFromCorner
+ * @param {vec2_object} arg0
+ */
+setPositionFromCorner : function (
+vec2 
+)
+{
+},
+
+/**
+ * @method getAutoHideTime
+ * @return {float}
+ */
+getAutoHideTime : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method setWidth
+ * @param {float} arg0
+ */
+setWidth : function (
+float 
+)
+{
+},
+
+/**
+ * @method create
+ * @param {ccui.ScrollView} arg0
+ * @param {ccui.ScrollView::Direction} arg1
+ * @return {ccui.ScrollViewBar}
+ */
+create : function (
+scrollview, 
+direction 
+)
+{
+    return ccui.ScrollViewBar;
+},
+
+/**
+ * @method ScrollViewBar
+ * @constructor
+ * @param {ccui.ScrollView} arg0
+ * @param {ccui.ScrollView::Direction} arg1
+ */
+ScrollViewBar : function (
+scrollview, 
+direction 
 )
 {
 },

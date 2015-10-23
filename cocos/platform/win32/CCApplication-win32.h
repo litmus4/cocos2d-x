@@ -56,7 +56,7 @@ public:
     int run();
 
     /**
-    @brief    Get current applicaiton instance.
+    @brief    Get current application instance.
     @return Current application instance pointer.
     */
     static Application* getInstance();
@@ -68,7 +68,7 @@ public:
     virtual void setAnimationInterval(float interval);
     virtual LanguageType getCurrentLanguage();
 
-	virtual const char * getCurrentLanguageCode();
+    virtual const char * getCurrentLanguageCode();
     
     /**
      @brief Get target platform

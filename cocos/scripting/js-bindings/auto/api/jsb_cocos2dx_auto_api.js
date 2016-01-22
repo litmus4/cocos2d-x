@@ -121,16 +121,6 @@ getPixelsHigh : function (
 },
 
 /**
- * @method setValid
- * @param {bool} arg0
- */
-setValid : function (
-bool 
-)
-{
-},
-
-/**
  * @method getBitsPerPixelForFormat
 * @param {cc.Texture2D::PixelFormat} pixelformat
 * @return {unsigned int|unsigned int}
@@ -212,16 +202,6 @@ getContentSize : function (
 )
 {
     return cc.Size;
-},
-
-/**
- * @method isValid
- * @return {bool}
- */
-isValid : function (
-)
-{
-    return false;
 },
 
 /**
@@ -4239,6 +4219,16 @@ str
 cc.SpriteFrame = {
 
 /**
+ * @method setAnchorPoint
+ * @param {vec2_object} arg0
+ */
+setAnchorPoint : function (
+vec2 
+)
+{
+},
+
+/**
  * @method setTexture
  * @param {cc.Texture2D} arg0
  */
@@ -4436,6 +4426,26 @@ setOriginalSizeInPixels : function (
 size 
 )
 {
+},
+
+/**
+ * @method getAnchorPoint
+ * @return {vec2_object}
+ */
+getAnchorPoint : function (
+)
+{
+    return cc.Vec2;
+},
+
+/**
+ * @method hasAnchorPoint
+ * @return {bool}
+ */
+hasAnchorPoint : function (
+)
+{
+    return false;
 },
 
 /**
@@ -6146,6 +6156,16 @@ supportsPVRTC : function (
 },
 
 /**
+ * @method supportsOESDepth24
+ * @return {bool}
+ */
+supportsOESDepth24 : function (
+)
+{
+    return false;
+},
+
+/**
  * @method getMaxModelviewStackDepth
  * @return {int}
  */
@@ -6304,6 +6324,16 @@ str
  * @return {bool}
  */
 supportsDiscardFramebuffer : function (
+)
+{
+    return false;
+},
+
+/**
+ * @method supportsOESPackedDepthStencil
+ * @return {bool}
+ */
+supportsOESPackedDepthStencil : function (
 )
 {
     return false;
@@ -12012,6 +12042,16 @@ float
 },
 
 /**
+ * @method getWidth
+ * @return {float}
+ */
+getWidth : function (
+)
+{
+    return 0;
+},
+
+/**
  * @method getString
  * @return {String}
  */
@@ -12082,6 +12122,16 @@ float
 },
 
 /**
+ * @method getAdditionalKerning
+ * @return {float}
+ */
+getAdditionalKerning : function (
+)
+{
+    return 0;
+},
+
+/**
  * @method getBMFontSize
  * @return {float}
  */
@@ -12106,6 +12156,26 @@ getMaxLineWidth : function (
  * @return {cc.TextHAlignment}
  */
 getHorizontalAlignment : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method getShadowOffset
+ * @return {size_object}
+ */
+getShadowOffset : function (
+)
+{
+    return cc.Size;
+},
+
+/**
+ * @method getLineSpacing
+ * @return {float}
+ */
+getLineSpacing : function (
 )
 {
     return 0;
@@ -12139,6 +12209,26 @@ setSystemFontName : function (
 str 
 )
 {
+},
+
+/**
+ * @method isWrapEnabled
+ * @return {bool}
+ */
+isWrapEnabled : function (
+)
+{
+    return false;
+},
+
+/**
+ * @method getOutlineSize
+ * @return {int}
+ */
+getOutlineSize : function (
+)
+{
+    return 0;
 },
 
 /**
@@ -12210,13 +12300,11 @@ overflow
 },
 
 /**
- * @method getLineSpacing
- * @return {float}
+ * @method enableStrikethrough
  */
-getLineSpacing : function (
+enableStrikethrough : function (
 )
 {
-    return 0;
 },
 
 /**
@@ -12270,13 +12358,23 @@ int
 },
 
 /**
- * @method getAdditionalKerning
+ * @method getShadowBlurRadius
  * @return {float}
  */
-getAdditionalKerning : function (
+getShadowBlurRadius : function (
 )
 {
     return 0;
+},
+
+/**
+ * @method getEffectColor
+ * @return {color4f_object}
+ */
+getEffectColor : function (
+)
+{
+    return cc.Color4F;
 },
 
 /**
@@ -12368,6 +12466,16 @@ getLineHeight : function (
 },
 
 /**
+ * @method getShadowColor
+ * @return {color4f_object}
+ */
+getShadowColor : function (
+)
+{
+    return cc.Color4F;
+},
+
+/**
  * @method getTTFConfig
  * @return {cc._ttfConfig}
  */
@@ -12378,13 +12486,11 @@ getTTFConfig : function (
 },
 
 /**
- * @method getVerticalAlignment
- * @return {cc.TextVAlignment}
+ * @method enableItalics
  */
-getVerticalAlignment : function (
+enableItalics : function (
 )
 {
-    return 0;
 },
 
 /**
@@ -12420,13 +12526,13 @@ float
 },
 
 /**
- * @method getWidth
- * @return {float}
+ * @method isShadowEnabled
+ * @return {bool}
  */
-getWidth : function (
+isShadowEnabled : function (
 )
 {
-    return 0;
+    return false;
 },
 
 /**
@@ -12444,6 +12550,16 @@ color4b
  * @return {cc.Label::Overflow}
  */
 getOverflow : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method getVerticalAlignment
+ * @return {cc.TextVAlignment}
+ */
+getVerticalAlignment : function (
 )
 {
     return 0;
@@ -12510,13 +12626,29 @@ texthalignment
 },
 
 /**
- * @method isWrapEnabled
- * @return {bool}
+ * @method enableBold
  */
-isWrapEnabled : function (
+enableBold : function (
 )
 {
-    return false;
+},
+
+/**
+ * @method enableUnderline
+ */
+enableUnderline : function (
+)
+{
+},
+
+/**
+ * @method getLabelEffectType
+ * @return {cc.LabelEffect}
+ */
+getLabelEffectType : function (
+)
+{
+    return 0;
 },
 
 /**
@@ -15284,6 +15416,14 @@ vec2
 },
 
 /**
+ * @method stop
+ */
+stop : function (
+)
+{
+},
+
+/**
  * @method updateParticleQuads
  */
 updateParticleQuads : function (
@@ -15337,6 +15477,14 @@ float
  */
 setRotationIsDir : function (
 bool 
+)
+{
+},
+
+/**
+ * @method start
+ */
+start : function (
 )
 {
 },
@@ -21103,16 +21251,6 @@ texture2d
 },
 
 /**
- * @method setDirty
- * @param {bool} arg0
- */
-setDirty : function (
-bool 
-)
-{
-},
-
-/**
  * @method renameTextureWithKey
  * @param {String} arg0
  * @param {String} arg1
@@ -21130,16 +21268,6 @@ str
 removeUnusedTextures : function (
 )
 {
-},
-
-/**
- * @method isDirty
- * @return {bool}
- */
-isDirty : function (
-)
-{
-    return false;
 },
 
 /**
@@ -23462,28 +23590,5 @@ getInstance : function (
  * @class ComponentJS
  */
 cc.ComponentJS = {
-
-/**
- * @method create
- * @param {String} arg0
- * @return {cc.ComponentJS}
- */
-create : function (
-str 
-)
-{
-    return cc.ComponentJS;
-},
-
-/**
- * @method ComponentJS
- * @constructor
- * @param {String} arg0
- */
-ComponentJS : function (
-str 
-)
-{
-},
 
 };

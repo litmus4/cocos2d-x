@@ -26,6 +26,12 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
+-- 
+-- @function [parent=#Label] getWidth 
+-- @param self
+-- @return float#float ret (return value: float)
+        
+--------------------------------
 --  Return the text the Label is displaying.
 -- @function [parent=#Label] getString 
 -- @param self
@@ -83,6 +89,14 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
+-- Returns the additional kerning of the Label.<br>
+-- warning Not support system font.<br>
+-- since v3.2.0
+-- @function [parent=#Label] getAdditionalKerning 
+-- @param self
+-- @return float#float ret (return value: float)
+        
+--------------------------------
 -- Return the user define BMFont size.<br>
 -- return The BMFont size in float value.
 -- @function [parent=#Label] getBMFontSize 
@@ -100,6 +114,18 @@
 -- @function [parent=#Label] getHorizontalAlignment 
 -- @param self
 -- @return int#int ret (return value: int)
+        
+--------------------------------
+-- Return shadow effect offset value.
+-- @function [parent=#Label] getShadowOffset 
+-- @param self
+-- @return size_table#size_table ret (return value: size_table)
+        
+--------------------------------
+-- 
+-- @function [parent=#Label] getLineSpacing 
+-- @param self
+-- @return float#float ret (return value: float)
         
 --------------------------------
 --  Makes the Label to clip upper and lower margin for reduce height of Label.
@@ -123,6 +149,19 @@
 -- @param self
 -- @param #string font
 -- @return Label#Label self (return value: cc.Label)
+        
+--------------------------------
+-- Query the wrap is enabled or not.<br>
+-- Note: System font will always return true.
+-- @function [parent=#Label] isWrapEnabled 
+-- @param self
+-- @return bool#bool ret (return value: bool)
+        
+--------------------------------
+-- Return the outline effect size value.
+-- @function [parent=#Label] getOutlineSize 
+-- @param self
+-- @return int#int ret (return value: int)
         
 --------------------------------
 --  Sets a new bitmap font to Label 
@@ -179,10 +218,12 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
--- 
--- @function [parent=#Label] getLineSpacing 
+-- Enables strikethrough.<br>
+-- Underline and Strikethrough cannot be enabled at the same time.<br>
+-- Strikethough is like an underline but at the middle of the glyph
+-- @function [parent=#Label] enableStrikethrough 
 -- @param self
--- @return float#float ret (return value: float)
+-- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
 --  Update content immediately.
@@ -220,12 +261,16 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
--- Returns the additional kerning of the Label.<br>
--- warning Not support system font.<br>
--- since v3.2.0
--- @function [parent=#Label] getAdditionalKerning 
+-- Return the shadow effect blur radius.
+-- @function [parent=#Label] getShadowBlurRadius 
 -- @param self
 -- @return float#float ret (return value: float)
+        
+--------------------------------
+-- Return current effect color value.
+-- @function [parent=#Label] getEffectColor 
+-- @param self
+-- @return color4f_table#color4f_table ret (return value: color4f_table)
         
 --------------------------------
 -- 
@@ -289,6 +334,12 @@
 -- @return float#float ret (return value: float)
         
 --------------------------------
+-- Return the shadow effect color value.
+-- @function [parent=#Label] getShadowColor 
+-- @param self
+-- @return color4f_table#color4f_table ret (return value: color4f_table)
+        
+--------------------------------
 -- Returns the TTF configuration object used by the Label.<br>
 -- see `TTFConfig`
 -- @function [parent=#Label] getTTFConfig 
@@ -296,10 +347,10 @@
 -- @return _ttfConfig#_ttfConfig ret (return value: cc._ttfConfig)
         
 --------------------------------
---  Returns the Label's text vertical alignment.
--- @function [parent=#Label] getVerticalAlignment 
+-- Enable italics rendering
+-- @function [parent=#Label] enableItalics 
 -- @param self
--- @return int#int ret (return value: int)
+-- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
 -- Sets the text color of Label.<br>
@@ -328,10 +379,10 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
--- 
--- @function [parent=#Label] getWidth 
+-- Return whether the shadow effect is enabled.
+-- @function [parent=#Label] isShadowEnabled 
 -- @param self
--- @return float#float ret (return value: float)
+-- @return bool#bool ret (return value: bool)
         
 --------------------------------
 -- Enable glow effect to Label.<br>
@@ -345,6 +396,12 @@
 -- Query the label's Overflow type.<br>
 -- return see `Overflow`
 -- @function [parent=#Label] getOverflow 
+-- @param self
+-- @return int#int ret (return value: int)
+        
+--------------------------------
+--  Returns the Label's text vertical alignment.
+-- @function [parent=#Label] getVerticalAlignment 
 -- @param self
 -- @return int#int ret (return value: int)
         
@@ -390,11 +447,22 @@
 -- @return Label#Label self (return value: cc.Label)
         
 --------------------------------
--- Query the wrap is enabled or not.<br>
--- Note: System font will always return true.
--- @function [parent=#Label] isWrapEnabled 
+-- Enable bold rendering
+-- @function [parent=#Label] enableBold 
 -- @param self
--- @return bool#bool ret (return value: bool)
+-- @return Label#Label self (return value: cc.Label)
+        
+--------------------------------
+-- Enable underline
+-- @function [parent=#Label] enableUnderline 
+-- @param self
+-- @return Label#Label self (return value: cc.Label)
+        
+--------------------------------
+-- Return current effect type.
+-- @function [parent=#Label] getLabelEffectType 
+-- @param self
+-- @return int#int ret (return value: int)
         
 --------------------------------
 -- @overload self, int, int         

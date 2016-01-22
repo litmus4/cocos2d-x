@@ -1,5 +1,5 @@
 #include "jsb_cocos2dx_experimental_video_auto.hpp"
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS) && !defined(CC_TARGET_OS_TVOS)
 #include "cocos2d_specifics.hpp"
 #include "UIVideoPlayer.h"
 
@@ -269,17 +269,11 @@ bool js_cocos2dx_experimental_video_VideoPlayer_create(JSContext *cx, uint32_t a
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     if (argc == 0) {
-        cocos2d::experimental::ui::VideoPlayer* ret = cocos2d::experimental::ui::VideoPlayer::create();
-        jsval jsret = JSVAL_NULL;
-        do {
-        if (ret) {
-            js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::experimental::ui::VideoPlayer>(cx, (cocos2d::experimental::ui::VideoPlayer*)ret);
-            jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-        } else {
-            jsret = JSVAL_NULL;
-        }
-    } while (0);
-        args.rval().set(jsret);
+
+        auto ret = cocos2d::experimental::ui::VideoPlayer::create();
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::experimental::ui::VideoPlayer>(ret);
+        JS::RootedObject jsret(cx, jsb_ref_autoreleased_create_jsobject(cx, ret, typeClass, "cocos2d::experimental::ui::VideoPlayer"));
+        args.rval().set(OBJECT_TO_JSVAL(jsret));
         return true;
     }
     JS_ReportError(cx, "js_cocos2dx_experimental_video_VideoPlayer_create : wrong number of arguments");
@@ -369,4 +363,4 @@ void register_all_cocos2dx_experimental_video(JSContext* cx, JS::HandleObject ob
     js_register_cocos2dx_experimental_video_VideoPlayer(cx, ns);
 }
 
-#endif //#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+#endif //#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS) && !defined(CC_TARGET_OS_TVOS)

@@ -937,7 +937,7 @@ bool jsval_to_ccarray_of_CCPoint(JSContext* cx, JS::HandleValue v, Point **point
     uint32_t len;
     JS_GetArrayLength(cx, jsobj, &len);
     
-    Point *array = new Point[len];
+    Point *array = new (std::nothrow) Point[len];
 
     for( uint32_t i=0; i< len;i++ ) {
         JS::RootedValue valarg(cx);
@@ -1761,9 +1761,10 @@ jsval ccarray_to_jsval(JSContext* cx, __Array *arr)
         JS::RootedValue arrElement(cx);
         
         //First, check whether object is associated with js object.
-        js_proxy_t* jsproxy = js_get_or_create_proxy<cocos2d::Ref>(cx, obj);
-        if (jsproxy) {
-            arrElement = OBJECT_TO_JSVAL(jsproxy->obj);
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Ref>(obj);
+        auto jsobj = jsb_ref_get_or_create_jsobject(cx, obj, typeClass, "cocos2d::Ref");
+        if (jsobj) {
+            arrElement = OBJECT_TO_JSVAL(jsobj);
         }
         else {
             __String* strVal = NULL;
@@ -1812,9 +1813,10 @@ jsval ccdictionary_to_jsval(JSContext* cx, __Dictionary* dict)
         JS::RootedValue dictElement(cx);
         Ref* obj = pElement->getObject();
         //First, check whether object is associated with js object.
-        js_proxy_t* jsproxy = js_get_or_create_proxy<cocos2d::Ref>(cx, obj);
-        if (jsproxy) {
-            dictElement = OBJECT_TO_JSVAL(jsproxy->obj);
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Ref>(obj);
+        auto jsobj = jsb_ref_get_or_create_jsobject(cx, obj, typeClass, "cocos2d::Ref");
+        if (jsobj) {
+            dictElement = OBJECT_TO_JSVAL(jsobj);
         }
         else {
             __String* strVal = NULL;
@@ -2855,7 +2857,7 @@ jsval std_map_string_string_to_jsval(JSContext* cx, const std::map<std::string, 
     return OBJECT_TO_JSVAL(jsRet);
 }
 
-bool jsval_to_resoucedata(JSContext *cx, JS::HandleValue v, ResouceData* ret) {
+bool jsval_to_resourcedata(JSContext *cx, JS::HandleValue v, ResourceData* ret) {
     JS::RootedObject tmp(cx);
     JS::RootedValue jstype(cx);
     JS::RootedValue jsfile(cx);
@@ -2880,7 +2882,7 @@ bool jsval_to_resoucedata(JSContext *cx, JS::HandleValue v, ResouceData* ret) {
     return true;
 }
 
-jsval resoucedata_to_jsval(JSContext* cx, const ResouceData& v)
+jsval resourcedata_to_jsval(JSContext* cx, const ResourceData& v)
 {
     JS::RootedObject proto(cx);
     JS::RootedObject parent(cx);

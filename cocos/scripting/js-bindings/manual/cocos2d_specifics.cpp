@@ -203,10 +203,9 @@ bool js_cocos2dx_EventTouch_getTouches(JSContext *cx, uint32_t argc, jsval *vp) 
             JS::RootedValue arrElement(cx);
             
             //First, check whether object is associated with js object.
-            js_proxy_t* jsproxy = js_get_or_create_proxy<cocos2d::Touch>(cx, touchObj);
-            if (jsproxy) {
-                arrElement = OBJECT_TO_JSVAL(jsproxy->obj);
-            }
+            auto jsobj = js_get_or_create_jsobject<cocos2d::Touch>(cx, touchObj);
+            if (jsobj)
+                arrElement = OBJECT_TO_JSVAL(jsobj);
             if (!JS_SetElement(cx, jsretArr, i, arrElement)) {
                 break;
             }
@@ -338,24 +337,17 @@ bool js_cocos2dx_CCSequence_create(JSContext *cx, uint32_t argc, jsval *vp)
                 i++;
             }
         }
-        cocos2d::FiniteTimeAction* ret = cocos2d::Sequence::create(array);
-        jsval jsret;
-        do {
-            if (ret) {
-                js_proxy_t *p = jsb_get_native_proxy(ret);
-                if (p) {
-                    jsret = OBJECT_TO_JSVAL(p->obj);
-                } else {
-                    // create a new js obj of that class
-                    js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::FiniteTimeAction>(cx, ret);
-                    jsret = OBJECT_TO_JSVAL(proxy->obj);
-                }
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
-        args.rval().set(jsret);
-        return true;
+        auto ret = new (std::nothrow) cocos2d::Sequence;
+        auto ok = ret->init(array);
+
+        if (ok)
+        {
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Sequence>(ret);
+            // link the native object with the javascript object
+            JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::Sequence"));
+            args.rval().set(OBJECT_TO_JSVAL(jsobj));
+            return true;
+        }
     }
     JS_ReportError(cx, "wrong number of arguments");
     return false;
@@ -383,67 +375,55 @@ bool js_cocos2dx_CCSpawn_create(JSContext *cx, uint32_t argc, jsval *vp)
                 i++;
             }
         }
-        cocos2d::FiniteTimeAction* ret = cocos2d::Spawn::create(array);
-        jsval jsret;
-        do {
-            if (ret) {
-                js_proxy_t *p = jsb_get_native_proxy(ret);
-                if (p) {
-                    jsret = OBJECT_TO_JSVAL(p->obj);
-                } else {
-                    // create a new js obj of that class
-                    js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::FiniteTimeAction>(cx, ret);
-                    jsret = OBJECT_TO_JSVAL(proxy->obj);
-                }
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
-        args.rval().set(jsret);
-        return true;
+        auto ret = new (std::nothrow) cocos2d::Spawn;
+        auto ok = ret->init(array);
+        if (ok)
+        {
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Spawn>(ret);
+            // link the native object with the javascript object
+            JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::Spawn"));
+            args.rval().set(OBJECT_TO_JSVAL(jsobj));
+            return true;
+        }
     }
     JS_ReportError(cx, "wrong number of arguments");
     return false;
 }
 
+// TODO: This function is deprecated. The new API is "new MenuItemToggle" instead of "MenuItemToggle.create"
+// There are not js tests for this function. Impossible to know weather it works Ok.
 bool js_cocos2dx_CCMenuItemToggle_create(JSContext *cx, uint32_t argc, jsval *vp)
 {
     if (argc >= 1) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-        cocos2d::MenuItemToggle* ret = cocos2d::MenuItemToggle::create();
+        cocos2d::MenuItemToggle* ret = new (std::nothrow) cocos2d::MenuItemToggle;
+        if (ret->initWithItem(nullptr))
+        {
 
-        for (uint32_t i=0; i < argc; i++) {
-            js_proxy_t *proxy;
-            JS::RootedObject tmpObj(cx, args.get(i).toObjectOrNull());
-            proxy = jsb_get_js_proxy(tmpObj);
-            cocos2d::MenuItem* item = (cocos2d::MenuItem*)(proxy ? proxy->ptr : NULL);
-            TEST_NATIVE_OBJECT(cx, item)
-            ret->addSubItem(item);
-        }
-
-        ret->setSelectedIndex(0);
-        
-        jsval jsret;
-        if (ret) {
-            js_proxy_t *proxy = jsb_get_native_proxy(ret);
-            if (proxy) {
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
-            } else {
-                // create a new js obj of that class
-                proxy = js_get_or_create_proxy<cocos2d::MenuItemToggle>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
+            for (uint32_t i=0; i < argc; i++) {
+                js_proxy_t *proxy;
+                JS::RootedObject tmpObj(cx, args.get(i).toObjectOrNull());
+                proxy = jsb_get_js_proxy(tmpObj);
+                cocos2d::MenuItem* item = (cocos2d::MenuItem*)(proxy ? proxy->ptr : NULL);
+                TEST_NATIVE_OBJECT(cx, item)
+                ret->addSubItem(item);
             }
-        } else {
-            jsret = JSVAL_NULL;
+
+            ret->setSelectedIndex(0);
+
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::MenuItemToggle>(ret);
+            // link the native object with the javascript object
+            JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::MenuItemToggle"));
+            args.rval().set(OBJECT_TO_JSVAL(jsobj));
+            return true;
         }
-        
-        args.rval().set(jsret);
-        return true;
     }
     JS_ReportError(cx, "wrong number of arguments");
     return false;
 }
 
+// TODO: This function is deprecated. The new API is "new Animation" instead of "Animation.create"
+// There are not js tests for this function. Impossible to know weather it works Ok.
 bool js_cocos2dx_CCAnimation_create(JSContext *cx, uint32_t argc, jsval *vp)
 {
     bool ok = true;
@@ -451,7 +431,8 @@ bool js_cocos2dx_CCAnimation_create(JSContext *cx, uint32_t argc, jsval *vp)
     if (argc <= 3) {
         cocos2d::Animation* ret = nullptr;
         double arg1 = 0.0f;
-        if (argc == 2) {
+        if (argc == 2)
+        {
             Vector<SpriteFrame*> arg0;
             if (argc > 0) {
                 ok &= jsval_to_ccvector(cx, args.get(0), &arg0);
@@ -460,8 +441,11 @@ bool js_cocos2dx_CCAnimation_create(JSContext *cx, uint32_t argc, jsval *vp)
             JS::RootedValue jsarg1(cx, args.get(1));
             ok &= JS::ToNumber(cx, jsarg1, &arg1);
             JSB_PRECONDITION2(ok, cx, false, "Error processing arguments");
-            ret = cocos2d::Animation::createWithSpriteFrames(arg0, arg1);
-        } else if (argc == 3) {
+            ret = new (std::nothrow) cocos2d::Animation;
+            ok &= ret->initWithSpriteFrames(arg0, arg1);
+        }
+        else if (argc == 3)
+        {
             Vector<AnimationFrame*> arg0;
             if (argc > 0) {
                 ok &= jsval_to_ccvector(cx, args.get(0), &arg0);
@@ -472,32 +456,33 @@ bool js_cocos2dx_CCAnimation_create(JSContext *cx, uint32_t argc, jsval *vp)
             ok &= JS::ToNumber(cx, jsarg1, &arg1);
             ok &= jsval_to_uint32(cx, args.get(2), &loops);
             JSB_PRECONDITION2(ok, cx, false, "Error processing arguments");
-            ret = cocos2d::Animation::create(arg0, arg1, loops);
-        } else if (argc == 1) {
+            ret = new (std::nothrow) cocos2d::Animation;
+            ok &= ret->initWithAnimationFrames(arg0, arg1, loops);
+        }
+        else if (argc == 1)
+        {
             Vector<SpriteFrame*> arg0;
             if (argc > 0) {
                 ok &= jsval_to_ccvector(cx, args.get(0), &arg0);
                 JSB_PRECONDITION2(ok, cx, false, "Error processing arguments");
             }
-            ret = cocos2d::Animation::createWithSpriteFrames(arg0);
-        } else if (argc == 0) {
-            ret = cocos2d::Animation::create();
+            ret = new (std::nothrow) cocos2d::Animation;
+            ok &= ret->initWithSpriteFrames(arg0);
         }
-        jsval jsret;
-        if (ret) {
-            js_proxy_t *proxy = jsb_get_native_proxy(ret);
-            if (proxy) {
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
-            } else {
-                // create a new js obj of that class
-                proxy = js_get_or_create_proxy<cocos2d::Animation>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
-            }
-        } else {
-            jsret = JSVAL_NULL;
+        else if (argc == 0)
+        {
+            ret = new (std::nothrow) cocos2d::Animation;
+            ok = ret->init();
         }
-        args.rval().set(jsret);
-        return true;
+
+        if (ok)
+        {
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Animation>(ret);
+            // link the native object with the javascript object
+            JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::Animation"));
+            args.rval().set(OBJECT_TO_JSVAL(jsobj));
+            return true;
+        }
     }
     JS_ReportError(cx, "wrong number of arguments");
     return false;
@@ -522,6 +507,8 @@ bool js_cocos2dx_CCScene_init(JSContext *cx, uint32_t argc, jsval *vp)
     return false;
 }
 
+// TODO: This function is deprecated. The new API is "new LayerMultiplex" instead of "LayerMultiplex.create"
+// There are not js tests for this function. Impossible to know weather it works Ok.
 bool js_cocos2dx_CCLayerMultiplex_create(JSContext *cx, uint32_t argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -530,18 +517,18 @@ bool js_cocos2dx_CCLayerMultiplex_create(JSContext *cx, uint32_t argc, jsval *vp
     ok &= jsvals_variadic_to_ccvector(cx, args, &arg0);
     JSB_PRECONDITION2(ok, cx, false, "Error processing arguments");
     
-    cocos2d::LayerMultiplex* ret = cocos2d::LayerMultiplex::createWithArray(arg0);
-    jsval jsret;
-    do {
-        if (ret) {
-            js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::LayerMultiplex>(cx, ret);
-            jsret = OBJECT_TO_JSVAL(proxy->obj);
-        } else {
-            jsret = JSVAL_NULL;
-        }
-    } while (0);
-    args.rval().set(jsret);
-    return true;
+    cocos2d::LayerMultiplex* ret = new (std::nothrow) cocos2d::LayerMultiplex;
+    ok &= ret->initWithArray(arg0);
+    if (ok)
+    {
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::LayerMultiplex>(ret);
+        // link the native object with the javascript object
+        JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::LayerMultiplex"));
+        args.rval().set(OBJECT_TO_JSVAL(jsobj));
+        return true;
+    }
+    JS_ReportError(cx, "Error creating LayerMultiplex");
+    return false;
 }
 
 bool js_cocos2dx_JSTouchDelegate_registerStandardDelegate(JSContext *cx, uint32_t argc, jsval *vp)
@@ -550,7 +537,7 @@ bool js_cocos2dx_JSTouchDelegate_registerStandardDelegate(JSContext *cx, uint32_
     {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-        JSTouchDelegate *touch = new JSTouchDelegate();
+        JSTouchDelegate *touch = new (std::nothrow) JSTouchDelegate();
         
         int priority = 1;
         if (argc == 2)
@@ -575,7 +562,7 @@ bool js_cocos2dx_JSTouchDelegate_registerTargetedDelegate(JSContext *cx, uint32_
     {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-        JSTouchDelegate *touch = new JSTouchDelegate();
+        JSTouchDelegate *touch = new (std::nothrow) JSTouchDelegate();
         touch->registerTargetedDelegate(args.get(0).toInt32(), args.get(1).toBoolean());
         
         JS::RootedObject jsobj(cx, args.get(2).toObjectOrNull());
@@ -690,8 +677,9 @@ static bool js_callFunc(JSContext *cx, uint32_t argc, jsval *vp)
             JS::RootedValue data(cx, args.get(2));
             tmpCobj->setJSExtraData(data);
         }
-        
-        CallFuncN *ret = CallFuncN::create([=](Node* sender){
+
+        cocos2d::CallFuncN *ret = new (std::nothrow) cocos2d::CallFuncN;
+        bool ok = ret->initWithFunction([=](Node* sender){
             JSB_AUTOCOMPARTMENT_WITH_GLOBAL_OBJCET
             
             JS::RootedValue jsvalThis(cx, tmpCobj->getJSCallbackThis());
@@ -702,8 +690,9 @@ static bool js_callFunc(JSContext *cx, uint32_t argc, jsval *vp)
             JS::RootedValue senderVal(cx);
             if (sender)
             {
-                js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::Node>(cx, sender);
-                senderVal.set(OBJECT_TO_JSVAL(proxy->obj));
+                js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Node>(sender);
+                auto jsobj = jsb_ref_get_or_create_jsobject(cx, sender, typeClass, "cocos2d::Node");
+                senderVal.set(OBJECT_TO_JSVAL(jsobj));
             }
             else
             {
@@ -723,12 +712,17 @@ static bool js_callFunc(JSContext *cx, uint32_t argc, jsval *vp)
             }
         });
         
-        js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::CallFunc>(cx, ret);
-        args.rval().set(OBJECT_TO_JSVAL(proxy->obj));
-        
+        if (ok)
+        {
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::CallFuncN>(ret);
+            // link the native object with the javascript object
+            JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::CallFuncN"));
+            args.rval().set(OBJECT_TO_JSVAL(jsobj));
+            return true;
+        }
         return true;
     }
-    JS_ReportError(cx, "Invalid number of arguments");
+    JS_ReportError(cx, "js_callFunc: Invalid number of arguments");
     return false;
 }
 
@@ -767,8 +761,9 @@ bool js_cocos2dx_CallFunc_initWithFunction(JSContext *cx, uint32_t argc, jsval *
             JS::RootedValue senderVal(cx);
             if (sender)
             {
-                js_proxy_t *senderProxy = js_get_or_create_proxy<cocos2d::Node>(cx, sender);
-                senderVal.set(OBJECT_TO_JSVAL(senderProxy->obj));
+                js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Node>(sender);
+                auto jsobj = jsb_ref_get_or_create_jsobject(cx, sender, typeClass, "cocos2d::Node");
+                senderVal.set(OBJECT_TO_JSVAL(jsobj));
             }
             else
             {
@@ -812,7 +807,7 @@ void JSScheduleWrapper::setTargetForSchedule(JS::HandleValue sched, JSScheduleWr
         JSObject* jsfunc = sched.toObjectOrNull();
         auto targetArray = getTargetForSchedule(sched);
         if (NULL == targetArray) {
-            targetArray = new __Array();
+            targetArray = new (std::nothrow) __Array();
             targetArray->init();
             schedFunc_proxy_t *p = (schedFunc_proxy_t *)malloc(sizeof(schedFunc_proxy_t));
             assert(p);
@@ -839,7 +834,7 @@ void JSScheduleWrapper::setTargetForJSObject(JS::HandleObject jsTargetObj, JSSch
 {
     auto targetArray = getTargetForJSObject(jsTargetObj);
     if (NULL == targetArray) {
-        targetArray = new __Array();
+        targetArray = new (std::nothrow) __Array();
         targetArray->init();
         schedTarget_proxy_t *p = (schedTarget_proxy_t *)malloc(sizeof(schedTarget_proxy_t));
         assert(p);
@@ -1260,7 +1255,7 @@ bool js_CCNode_scheduleOnce(JSContext *cx, uint32_t argc, jsval *vp)
 
         if (!bFound)
         {
-            tmpCobj = new JSScheduleWrapper();
+            tmpCobj = new (std::nothrow) JSScheduleWrapper();
             tmpCobj->autorelease();
             tmpCobj->setJSCallbackThis(thisValue);
             tmpCobj->setJSCallbackFunc(args.get(0));
@@ -1356,7 +1351,7 @@ bool js_CCNode_schedule(JSContext *cx, uint32_t argc, jsval *vp)
 
         if (!bFound)
         {
-            tmpCobj = new JSScheduleWrapper();
+            tmpCobj = new (std::nothrow) JSScheduleWrapper();
             tmpCobj->autorelease();
             tmpCobj->setJSCallbackThis(thisValue);
             tmpCobj->setJSCallbackFunc(args.get(0));
@@ -1430,7 +1425,7 @@ bool js_cocos2dx_CCNode_scheduleUpdateWithPriority(JSContext *cx, uint32_t argc,
         
         if (!bFound)
         {
-            tmpCobj = new JSScheduleWrapper();
+            tmpCobj = new (std::nothrow) JSScheduleWrapper();
             tmpCobj->autorelease();
             tmpCobj->setJSCallbackThis(thisValue);
             tmpCobj->setJSCallbackFunc(jsUpdateFunc);
@@ -1531,7 +1526,7 @@ bool js_cocos2dx_CCNode_scheduleUpdate(JSContext *cx, uint32_t argc, jsval *vp)
         
         if (!bFound)
         {
-            tmpCobj = new JSScheduleWrapper();
+            tmpCobj = new (std::nothrow) JSScheduleWrapper();
             tmpCobj->autorelease();
             tmpCobj->setJSCallbackThis(thisValue);
             tmpCobj->setJSCallbackFunc(jsUpdateFunc);
@@ -1646,7 +1641,7 @@ bool js_CCScheduler_scheduleUpdateForTarget(JSContext *cx, uint32_t argc, jsval 
         
         if (!bFound)
         {
-            tmpCObj = new JSScheduleWrapper();
+            tmpCObj = new (std::nothrow) JSScheduleWrapper();
             tmpCObj->autorelease();
             tmpCObj->setJSCallbackThis(args.get(0));
             tmpCObj->setJSCallbackFunc(jsUpdateFunc);
@@ -1772,7 +1767,7 @@ bool js_CCScheduler_scheduleCallbackForTarget(JSContext *cx, uint32_t argc, jsva
         
         if (!bFound)
         {
-            tmpCObj = new JSScheduleWrapper();
+            tmpCObj = new (std::nothrow) JSScheduleWrapper();
             tmpCObj->autorelease();
             tmpCObj->setJSCallbackThis(args.get(0));
             tmpCObj->setJSCallbackFunc(args.get(1));
@@ -2451,10 +2446,25 @@ bool js_cocos2dx_ActionInterval_repeat(JSContext *cx, uint32_t argc, jsval *vp)
         if (timesInt <= 0) {
             JS_ReportError(cx, "js_cocos2dx_ActionInterval_repeat : Repeat times must be greater than 0");
         }
-        
+
+        // no longer owned since it will be re-bound
+        cobj->_scriptOwned = false;
+
         cocos2d::Repeat* action = new (std::nothrow) cocos2d::Repeat;
         action->initWithAction(cobj, timesInt);
+
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+        // Using jsb_ref_rebind will cause GC crash on win32
+        action->autorelease();
+        // Unlink old native object
+        JS::RemoveObjectRoot(cx, &proxy->obj);
+        jsb_remove_proxy(proxy);
+        // Relink with new object
+        js_proxy_t* newProxy = jsb_new_proxy(action, obj);
+        JS::AddNamedObjectRoot(cx, &newProxy->obj, "cocos2d::Repeat");
+#else // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
         jsb_ref_rebind(cx, obj, proxy, cobj, action, "cocos2d::Repeat");
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
 
         args.rval().set(OBJECT_TO_JSVAL(obj));
         return true;
@@ -2473,10 +2483,26 @@ bool js_cocos2dx_ActionInterval_repeatForever(JSContext *cx, uint32_t argc, jsva
     JSB_PRECONDITION2( cobj, cx, false, "js_cocos2dx_ActionInterval_repeatForever : Invalid Native Object");
     
     if (argc == 0) {
+
+        // no longer owned.
+        cobj->_scriptOwned = false;
+
         cocos2d::RepeatForever* action = new (std::nothrow) cocos2d::RepeatForever;
         action->initWithAction(cobj);
 
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+        // Using jsb_ref_rebind will cause GC crash on win32
+        action->autorelease();
+        // Unlink old native object
+        JS::RemoveObjectRoot(cx, &proxy->obj);
+        jsb_remove_proxy(proxy);
+        // Relink with new object
+        js_proxy_t* newProxy = jsb_new_proxy(action, jsobj);
+        JS::AddNamedObjectRoot(cx, &newProxy->obj, "cocos2d::RepeatForever");
+#else // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
         jsb_ref_rebind(cx, jsobj, proxy, cobj, action, "cocos2d::RepeatForever");
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+
         args.rval().set(OBJECT_TO_JSVAL(jsobj));
         return true;
     }
@@ -2503,10 +2529,24 @@ bool js_cocos2dx_ActionInterval_speed(JSContext *cx, uint32_t argc, jsval *vp)
             JS_ReportError(cx, "js_cocos2dx_ActionInterval_speed : Speed must not be negative");
             return false;
         }
-        
+
+        // no longer owned since it is going to be re-bound
+        cobj->_scriptOwned = false;
+
         cocos2d::Speed* action = new (std::nothrow) cocos2d::Speed;
         action->initWithAction(cobj, speed);
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+        // Using jsb_ref_rebind will cause GC crash on win32
+        action->autorelease();
+        // Unlink old native object
+        JS::RemoveObjectRoot(cx, &proxy->obj);
+        jsb_remove_proxy(proxy);
+        // Relink with new object
+        js_proxy_t* newProxy = jsb_new_proxy(action, obj);
+        JS::AddNamedObjectRoot(cx, &newProxy->obj, "cocos2d::Speed");
+#else // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
         jsb_ref_rebind(cx, obj, proxy, cobj, action, "cocos2d::Speed");
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
 
         args.rval().set(OBJECT_TO_JSVAL(obj));
         return true;
@@ -2568,6 +2608,9 @@ bool js_cocos2dx_ActionInterval_easing(JSContext *cx, uint32_t argc, jsval *vp)
     JS::RootedValue jsParam(cx);
     double tag;
     double parameter;
+
+    // no longer owned since it will be re-bound
+    oldAction->_scriptOwned = false;
 
     for (int i = 0; i < argc; i++)
     {
@@ -2814,8 +2857,19 @@ bool js_cocos2dx_ActionInterval_easing(JSContext *cx, uint32_t argc, jsval *vp)
         }
     }
 
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+    // Using jsb_ref_rebind will cause GC crash on win32
+    newAction->autorelease();
+    // Unlink old native object
+    JS::RemoveObjectRoot(cx, &proxy->obj);
+    jsb_remove_proxy(proxy);
+    // Relink with new object
+    js_proxy_t* newProxy = jsb_new_proxy(newAction, jsobj);
+    JS::AddNamedObjectRoot(cx, &newProxy->obj, "cocos2d::EaseAction");
+#else // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
     // Unbind existing proxy binding with cobj, and rebind with the new action
     jsb_ref_rebind(cx, jsobj, proxy, oldAction, newAction, "cocos2d::EaseAction");
+#endif // CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
 
     args.rval().set(OBJECT_TO_JSVAL(jsobj));
     return true;
@@ -4258,8 +4312,6 @@ bool js_cocos2dx_CCGLProgram_setUniformLocationWith4f(JSContext *cx, uint32_t ar
     
     args.rval().setUndefined();
     return true;
-    JS_ReportError(cx, "wrong number of arguments: %d, was expecting %d", argc, 5);
-    return false;
 }
 
 bool js_cocos2dx_CCGLProgram_setUniformLocationWithMatrixfvUnion(JSContext *cx, uint32_t argc, jsval *vp)
@@ -4318,32 +4370,23 @@ bool js_cocos2dx_CCGLProgram_create(JSContext *cx, uint32_t argc, jsval *vp)
     std::string arg0_tmp; ok &= jsval_to_std_string(cx, args.get(0), &arg0_tmp); arg0 = arg0_tmp.c_str();
     std::string arg1_tmp; ok &= jsval_to_std_string(cx, args.get(1), &arg1_tmp); arg1 = arg1_tmp.c_str();
 
-    GLProgram* ret = new GLProgram();
-    ret->autorelease();
+    GLProgram* ret = new (std::nothrow) cocos2d::GLProgram;
+    ok = ret->initWithFilenames(arg0, arg1);
     
-    ret->initWithFilenames(arg0, arg1);
-    
-    jsval jsret;
-    do {
-        if (ret) {
-            js_proxy_t *p = jsb_get_native_proxy(ret);
-            if (p) {
-                jsret = OBJECT_TO_JSVAL(p->obj);
-            } else {
-                // create a new js obj of that class
-                js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::GLProgram>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
-            }
-        } else {
-            jsret = JSVAL_NULL;
-        }
-    } while (0);
-    args.rval().set(jsret);
-    return true;
+    if (ok)
+    {
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::GLProgram>(ret);
+        // link the native object with the javascript object
+        JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::GLProgram"));
+        args.rval().set(OBJECT_TO_JSVAL(jsobj));
+        return true;
+    }
 
+    JS_ReportError(cx, "Error creating GLProgram");
+    return false;
 }
 
-
+// TODO: This function doesn't have test. I was impossible to test it
 bool js_cocos2dx_CCGLProgram_createWithString(JSContext *cx, uint32_t argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -4357,25 +4400,17 @@ bool js_cocos2dx_CCGLProgram_createWithString(JSContext *cx, uint32_t argc, jsva
     std::string arg0_tmp; ok &= jsval_to_std_string(cx, args.get(0), &arg0_tmp); arg0 = arg0_tmp.c_str();
     std::string arg1_tmp; ok &= jsval_to_std_string(cx, args.get(1), &arg1_tmp); arg1 = arg1_tmp.c_str();
     
-    GLProgram* ret = new GLProgram();
-    ret->initWithByteArrays(arg0, arg1);
+    GLProgram* ret = new (std::nothrow) GLProgram;
+    ok = ret->initWithByteArrays(arg0, arg1);
     
-    jsval jsret;
-    do {
-        if (ret) {
-            js_proxy_t *p = jsb_get_native_proxy(ret);
-            if (p) {
-                jsret = OBJECT_TO_JSVAL(p->obj);
-            } else {
-                // create a new js obj of that class
-                js_proxy_t *proxy = js_get_or_create_proxy<cocos2d::GLProgram>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(proxy->obj);
-            }
-        } else {
-            jsret = JSVAL_NULL;
-        }
-    } while (0);
-    args.rval().set(jsret);
+    if (ok)
+    {
+        js_type_class_t *typeClass = js_get_type_from_native<cocos2d::GLProgram>(ret);
+        // link the native object with the javascript object
+        JS::RootedObject jsobj(cx, jsb_ref_create_jsobject(cx, ret, typeClass, "cocos2d::GLProgram"));
+        args.rval().set(OBJECT_TO_JSVAL(jsobj));
+        return true;
+    }
     return true;
     
 }
@@ -4521,10 +4556,14 @@ bool js_cocos2dx_SpriteBatchNode_getDescendants(JSContext *cx, uint32_t argc, js
         JS::RootedObject jsretArr(cx, JS_NewArrayObject(cx, 0));
         size_t vSize = ret.size();
         JS::RootedValue jsret(cx);
+
+        js_type_class_t *typeClass = nullptr;
+        if (ret.size() > 0)
+            typeClass = js_get_type_from_native<cocos2d::Sprite>(ret[0]);
         for (size_t i = 0; i < vSize; i++)
         {
-            proxy = js_get_or_create_proxy<cocos2d::Sprite>(cx, ret[i]);
-            jsret = OBJECT_TO_JSVAL(proxy->obj);
+            auto jsobj = jsb_ref_get_or_create_jsobject(cx, ret[i], typeClass, "cocos2d::Sprite");
+            jsret = OBJECT_TO_JSVAL(jsobj);
             JS_SetElement(cx, jsretArr, static_cast<uint32_t>(i), jsret);
         }
         args.rval().set(OBJECT_TO_JSVAL(jsretArr));
@@ -4577,8 +4616,7 @@ bool js_PlistParser_getInstance(JSContext *cx, unsigned argc, JS::Value *vp)
             jsret = OBJECT_TO_JSVAL(p->obj);
         } else {
             // create a new js obj of that class
-            js_proxy_t *proxy = js_get_or_create_proxy<SAXParser>(cx, parser);
-            jsret = OBJECT_TO_JSVAL(proxy->obj);
+            jsret = OBJECT_TO_JSVAL(js_get_or_create_jsobject<SAXParser>(cx, parser));
         }
     } else {
         jsret = JSVAL_NULL;
@@ -4897,8 +4935,8 @@ bool js_cocos2dx_RenderTexture_saveToFile(JSContext *cx, uint32_t argc, jsval *v
                     jsval largv[2];
                     do {
                         if (larg0) {
-                            js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::RenderTexture>(cx, (cocos2d::RenderTexture*)larg0);
-                            largv[0] = OBJECT_TO_JSVAL(jsProxy->obj);
+                            JSB_AUTOCOMPARTMENT_WITH_GLOBAL_OBJCET
+                            largv[0] = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::RenderTexture>(cx, (cocos2d::RenderTexture*)larg0));
                         } else {
                             largv[0] = JSVAL_NULL;
                         }
@@ -4968,8 +5006,8 @@ bool js_cocos2dx_RenderTexture_saveToFile(JSContext *cx, uint32_t argc, jsval *v
                     jsval largv[2];
                     do {
                         if (larg0) {
-                            js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::RenderTexture>(cx, (cocos2d::RenderTexture*)larg0);
-                            largv[0] = OBJECT_TO_JSVAL(jsProxy->obj);
+                            JSB_AUTOCOMPARTMENT_WITH_GLOBAL_OBJCET
+                            largv[0] = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::RenderTexture>(cx, (cocos2d::RenderTexture*)larg0));
                         } else {
                             largv[0] = JSVAL_NULL;
                         }
@@ -5163,34 +5201,15 @@ bool js_cocos2dx_EventKeyboard_constructor(JSContext *cx, uint32_t argc, jsval *
     JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_EventKeyboard_constructor : Error processing arguments");
     
     cocos2d::EventKeyboard* cobj = new (std::nothrow) cocos2d::EventKeyboard(arg0, arg1);
-    cocos2d::Ref *_ccobj = dynamic_cast<cocos2d::Ref *>(cobj);
-    if (_ccobj) {
-        _ccobj->autorelease();
-    }
-    TypeTest<cocos2d::EventKeyboard> t;
-    js_type_class_t *typeClass = nullptr;
-    std::string typeName = t.s_name();
-    auto typeMapIter = _js_global_type_map.find(typeName);
-    CCASSERT(typeMapIter != _js_global_type_map.end(), "Can't find the class type!");
-    typeClass = typeMapIter->second;
-    CCASSERT(typeClass, "The value is null.");
-    JS::RootedObject proto(cx, typeClass->proto.ref());
-    JS::RootedObject parentProto(cx, typeClass->parentProto.ref());
-    JS::RootedObject obj(cx, JS_NewObject(cx, typeClass->jsclass, proto, parentProto));
-    JS::RootedValue objVal(cx, OBJECT_TO_JSVAL(obj));
-    args.rval().set(objVal);
-    // link the native object with the javascript object
-    js_proxy_t* p = jsb_new_proxy(cobj, obj);
-    JS::AddNamedObjectRoot(cx, &p->obj, "cocos2d::EventKeyboard");
+    js_type_class_t *typeClass = js_get_type_from_native<cocos2d::EventKeyboard>(cobj);
+    auto jsobj = jsb_ref_create_jsobject(cx, cobj, typeClass, "cocos2d::EventKeyboard");
+
+    args.rval().set(OBJECT_TO_JSVAL(jsobj));
     return true;
 }
 
 
 extern JSObject *jsb_cocos2d_Event_prototype;
-
-void js_cocos2d_EventKeyboard_finalize(JSFreeOp *fop, JSObject *obj) {
-    CCLOGINFO("jsbindings: finalizing JS object %p (EventKeyboard)", obj);
-}
 
 static bool js_is_native_obj(JSContext *cx, uint32_t argc, jsval *vp)
 {
@@ -5209,7 +5228,7 @@ void js_register_cocos2dx_EventKeyboard(JSContext *cx, JS::HandleObject global) 
     jsb_cocos2d_EventKeyboard_class->enumerate = JS_EnumerateStub;
     jsb_cocos2d_EventKeyboard_class->resolve = JS_ResolveStub;
     jsb_cocos2d_EventKeyboard_class->convert = JS_ConvertStub;
-    jsb_cocos2d_EventKeyboard_class->finalize = js_cocos2d_EventKeyboard_finalize;
+    jsb_cocos2d_EventKeyboard_class->finalize = jsb_ref_finalize;
     jsb_cocos2d_EventKeyboard_class->flags = JSCLASS_HAS_RESERVED_SLOTS(2);
     
     static JSPropertySpec properties[] = {
@@ -5333,17 +5352,11 @@ bool js_cocos2dx_Scene_getPhysics3DWorld(JSContext *cx, uint32_t argc, jsval *vp
     {
         cocos2d::Physics3DWorld* ret = cobj->getPhysics3DWorld();
         jsval jsret = JSVAL_NULL;
-        do
+        if (ret)
         {
-            if (ret)
-            {
-                js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::Physics3DWorld>(cx, (cocos2d::Physics3DWorld*)ret);
-                jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-            } else
-            {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::Physics3DWorld>(ret);
+            jsret = OBJECT_TO_JSVAL(jsb_ref_get_or_create_jsobject(cx, ret, typeClass, "cocos2d::Physics3DWorld"));
+        }
         args.rval().set(jsret);
         return true;
     }
@@ -5419,15 +5432,11 @@ bool js_cocos2dx_Scene_getNavMesh(JSContext *cx, uint32_t argc, jsval *vp)
 	if (argc == 0) {
 		cocos2d::NavMesh* ret = cobj->getNavMesh();
 		jsval jsret = JSVAL_NULL;
-		do {
-			if (ret) {
-				js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::NavMesh>(cx, (cocos2d::NavMesh*)ret);
-				jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-			}
-			else {
-				jsret = JSVAL_NULL;
-			}
-		} while (0);
+        if (ret)
+        {
+            js_type_class_t *typeClass = js_get_type_from_native<cocos2d::NavMesh>(ret);
+            jsret = OBJECT_TO_JSVAL(jsb_ref_get_or_create_jsobject(cx, ret, typeClass, "cocos2d::NavMesh"));
+        }
 		args.rval().set(jsret);
 		return true;
 	}
@@ -5468,7 +5477,7 @@ bool js_cocos2dx_PolygonInfo_getTriaglesCount(JSContext *cx, uint32_t argc, jsva
     JSB_PRECONDITION2( cobj, cx, false, "js_cocos2dx_PolygonInfo_getTriaglesCount : Invalid Native Object");
     if (argc == 0)
     {
-        const unsigned int ret = cobj->getTriaglesCount();
+        const unsigned int ret = cobj->getTrianglesCount();
         jsval jsret = JSVAL_NULL;
         jsret = uint32_to_jsval(cx, ret);
         args.rval().set(jsret);
@@ -5599,20 +5608,15 @@ bool js_cocos2dx_PolygonInfo_constructor(JSContext *cx, uint32_t argc, jsval *vp
 
 void js_cocos2d_PolygonInfo_finalize(JSFreeOp *fop, JSObject *obj) {
     CCLOGINFO("jsbindings: finalizing JS object %p (PolygonInfo)", obj);
-    js_proxy_t* nproxy;
-    js_proxy_t* jsproxy;
     JSContext *cx = ScriptingCore::getInstance()->getGlobalContext();
     JS::RootedObject jsobj(cx, obj);
-    jsproxy = jsb_get_js_proxy(jsobj);
-    if (jsproxy)
+    auto proxy = jsb_get_js_proxy(jsobj);
+    if (proxy)
     {
-        nproxy = jsb_get_native_proxy(jsproxy->ptr);
-        
-        cocos2d::PolygonInfo *nobj = static_cast<cocos2d::PolygonInfo *>(nproxy->ptr);
+        cocos2d::PolygonInfo *nobj = static_cast<cocos2d::PolygonInfo *>(proxy->ptr);
         if (nobj)
             delete nobj;
-        
-        jsb_remove_proxy(nproxy, jsproxy);
+        jsb_remove_proxy(proxy);
     }
 }
 
@@ -5674,16 +5678,11 @@ bool js_cocos2dx_AutoPolygon_generatePolygon(JSContext *cx, uint32_t argc, jsval
         std::string arg0;
         ok &= jsval_to_std_string(cx, args.get(0), &arg0);
         JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_AutoPolygon_generatePolygon : Error processing arguments");
-        cocos2d::PolygonInfo* ret = new cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0));
+        cocos2d::PolygonInfo* ret = new (std::nothrow) cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0));
         jsval jsret = JSVAL_NULL;
-        do {
-            if (ret) {
-                js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::PolygonInfo>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
+        if (ret) {
+            jsret = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::PolygonInfo>(cx, ret));
+        }
         args.rval().set(jsret);
         return true;
     }
@@ -5693,16 +5692,11 @@ bool js_cocos2dx_AutoPolygon_generatePolygon(JSContext *cx, uint32_t argc, jsval
         ok &= jsval_to_std_string(cx, args.get(0), &arg0);
         ok &= jsval_to_ccrect(cx, args.get(1), &arg1);
         JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_AutoPolygon_generatePolygon : Error processing arguments");
-        cocos2d::PolygonInfo* ret = new cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1));
+        cocos2d::PolygonInfo* ret = new (std::nothrow) cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1));
         jsval jsret = JSVAL_NULL;
-        do {
-            if (ret) {
-                js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::PolygonInfo>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
+        if (ret) {
+            jsret = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::PolygonInfo>(cx, ret));
+        }
         args.rval().set(jsret);
         return true;
     }
@@ -5714,16 +5708,11 @@ bool js_cocos2dx_AutoPolygon_generatePolygon(JSContext *cx, uint32_t argc, jsval
         ok &= jsval_to_ccrect(cx, args.get(1), &arg1);
         ok &= JS::ToNumber( cx, args.get(2), &arg2) && !isnan(arg2);
         JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_AutoPolygon_generatePolygon : Error processing arguments");
-        cocos2d::PolygonInfo* ret = new cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1, arg2));
+        cocos2d::PolygonInfo* ret = new (std::nothrow) cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1, arg2));
         jsval jsret = JSVAL_NULL;
-        do {
-            if (ret) {
-                js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::PolygonInfo>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
+        if (ret) {
+            jsret = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::PolygonInfo>(cx, ret));
+        }
         args.rval().set(jsret);
         return true;
     }
@@ -5737,16 +5726,11 @@ bool js_cocos2dx_AutoPolygon_generatePolygon(JSContext *cx, uint32_t argc, jsval
         ok &= JS::ToNumber( cx, args.get(2), &arg2) && !isnan(arg2);
         ok &= JS::ToNumber( cx, args.get(3), &arg3) && !isnan(arg3);
         JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_AutoPolygon_generatePolygon : Error processing arguments");
-        cocos2d::PolygonInfo* ret = new cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1, arg2, arg3));
+        cocos2d::PolygonInfo* ret = new (std::nothrow) cocos2d::PolygonInfo(cocos2d::AutoPolygon::generatePolygon(arg0, arg1, arg2, arg3));
         jsval jsret = JSVAL_NULL;
-        do {
-            if (ret) {
-                js_proxy_t *jsProxy = js_get_or_create_proxy<cocos2d::PolygonInfo>(cx, ret);
-                jsret = OBJECT_TO_JSVAL(jsProxy->obj);
-            } else {
-                jsret = JSVAL_NULL;
-            }
-        } while (0);
+        if (ret) {
+            jsret = OBJECT_TO_JSVAL(js_get_or_create_jsobject<cocos2d::PolygonInfo>(cx, ret));
+        }
         args.rval().set(jsret);
         return true;
     }
@@ -5782,19 +5766,14 @@ bool js_cocos2dx_AutoPolygon_constructor(JSContext *cx, uint32_t argc, jsval *vp
 
 void js_cocos2d_AutoPolygon_finalize(JSFreeOp *fop, JSObject *obj) {
     CCLOGINFO("jsbindings: finalizing JS object %p (AutoPolygon)", obj);
-    js_proxy_t* nproxy;
-    js_proxy_t* jsproxy;
     JSContext *cx = ScriptingCore::getInstance()->getGlobalContext();
     JS::RootedObject jsobj(cx, obj);
-    jsproxy = jsb_get_js_proxy(jsobj);
-    if (jsproxy) {
-        nproxy = jsb_get_native_proxy(jsproxy->ptr);
-        
-        cocos2d::AutoPolygon *nobj = static_cast<cocos2d::AutoPolygon *>(nproxy->ptr);
+    auto proxy = jsb_get_js_proxy(jsobj);
+    if (proxy) {
+        cocos2d::AutoPolygon *nobj = static_cast<cocos2d::AutoPolygon *>(proxy->ptr);
         if (nobj)
             delete nobj;
-        
-        jsb_remove_proxy(nproxy, jsproxy);
+        jsb_remove_proxy(proxy);
     }
 }
 
@@ -5840,6 +5819,41 @@ void js_register_cocos2dx_AutoPolygon(JSContext *cx, JS::HandleObject global) {
     jsb_register_class<cocos2d::AutoPolygon>(cx, jsb_cocos2d_AutoPolygon_class, proto, JS::NullPtr());
 }
 
+// ComponentJS controls the native js proxy itself, must be bound manually
+bool js_cocos2dx_ComponentJS_create(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    bool ok = true;
+    if (argc == 1) {
+        std::string arg0;
+        ok &= jsval_to_std_string(cx, args.get(0), &arg0);
+        JSB_PRECONDITION2(ok, cx, false, "js_cocos2dx_ComponentJS_create : Error processing arguments");
+        
+        auto ret = cocos2d::ComponentJS::create(arg0);
+        JS::RootedObject jsret(cx, static_cast<JSObject*>(ret->getScriptObject()));
+        args.rval().set(OBJECT_TO_JSVAL(jsret));
+        return true;
+    }
+    JS_ReportError(cx, "js_cocos2dx_ComponentJS_create : wrong number of arguments");
+    return false;
+}
+static bool js_cocos2dx_ComponentJS_ctor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject obj(cx, args.thisv().toObjectOrNull());
+    bool ok = true;
+    std::string arg0;
+    ok &= jsval_to_std_string(cx, args.get(0), &arg0);
+    JSB_PRECONDITION2(ok, cx, false, "js_cocos2d_ComponentJS_ctor : Error processing arguments");
+    cocos2d::ComponentJS *nobj = new (std::nothrow) cocos2d::ComponentJS(arg0);
+    // autorelease it
+    nobj->autorelease();
+    bool isFound = false;
+    if (JS_HasProperty(cx, obj, "_ctor", &isFound) && isFound)
+        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(obj), "_ctor", args);
+    args.rval().setUndefined();
+    return true;
+}
 bool js_cocos2dx_ComponentJS_getScriptObject(JSContext *cx, uint32_t argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -6104,8 +6118,12 @@ void register_cocos2dx_js_core(JSContext* cx, JS::HandleObject global)
     tmpObj.set(jsb_cocos2d_ClippingNode_prototype);
     JS_DefineFunction(cx, tmpObj, "init", js_cocos2dx_ClippingNode_init, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT);
     
+    JS_GetProperty(cx, ccObj, "ComponentJS", &tmpVal);
+    tmpObj = tmpVal.toObjectOrNull();
+    JS_DefineFunction(cx, tmpObj, "create", js_cocos2dx_ComponentJS_create, 1, JSPROP_READONLY | JSPROP_PERMANENT);
     tmpObj.set(jsb_cocos2d_ComponentJS_prototype);
     JS_DefineFunction(cx, tmpObj, "getScriptObject", js_cocos2dx_ComponentJS_getScriptObject, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT);
+    JS_DefineFunction(cx, tmpObj, "ctor", js_cocos2dx_ComponentJS_ctor, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT);
 
     JS_DefineFunction(cx, ccObj, "glEnableVertexAttribs", js_cocos2dx_ccGLEnableVertexAttribs, 1, JSPROP_READONLY | JSPROP_PERMANENT);
     JS_DefineFunction(cx, ccObj, "pAdd", js_cocos2dx_ccpAdd, 1, JSPROP_READONLY | JSPROP_PERMANENT);

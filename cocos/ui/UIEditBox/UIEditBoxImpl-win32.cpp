@@ -22,12 +22,12 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "UIEditBoxImpl-win32.h"
+#include "ui/UIEditBox/UIEditBoxImpl-win32.h"
 
 #include "platform/CCPlatformConfig.h"
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 
-#include "UIEditBox.h"
+#include "ui/UIEditBox/UIEditBox.h"
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
@@ -389,7 +389,7 @@ void CWin32InputBox::InitDialog()
 		_hwndEditCtrl = hwndEdit1;
 
 	std::u16string utf16Result;
-	cocos2d::StringUtils::UTF8ToUTF16(_param->pstrResult->c_str(), utf16Result);
+	cocos2d::StringUtils::UTF8ToUTF16(*_param->pstrResult, utf16Result);
 	::SetWindowTextW(_hwndEditCtrl, (LPCWSTR) utf16Result.c_str());
 
 	RECT rectDlg, rectEdit1, rectEdit2;

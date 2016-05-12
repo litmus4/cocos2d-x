@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "base/ccMacros.h"
 #include "platform/CCFileUtils.h"
 #include "renderer/CCGLProgram.h"
-#include "CCBundleReader.h"
+#include "3d/CCBundleReader.h"
 #include "base/CCData.h"
 #include "json/document.h"
 
@@ -213,7 +213,7 @@ bool Bundle3D::loadObj(MeshDatas& meshdatas, MaterialDatas& materialdatas, NodeD
     if (mtl_basepath)
         mtlPath = mtl_basepath;
     else
-        mtlPath = fullPath.substr(0, fullPath.find_last_of("\\/") + 1).c_str();
+        mtlPath = fullPath.substr(0, fullPath.find_last_of("\\/") + 1);
     
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;

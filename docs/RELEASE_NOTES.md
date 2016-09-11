@@ -2,211 +2,101 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Cocos2d-x 3.11 Release Notes](#cocos2d-x-311-release-notes)
+- [Cocos2d-x 3.13 Release Notes](#cocos2d-x-313-release-notes)
 - [Misc Information](#misc-information)
-- [Requirements](#requirements)
-  - [Runtime Requirements](#runtime-requirements)
-  - [Compiler Requirements](#compiler-requirements)
-  - [How to run tests](#how-to-run-tests)
-    - [Cocos Console](#cocos-console)
-    - [Mac OSX & iOS](#mac-osx-&-ios)
-    - [Android](#android)
-    - [Windows](#windows)
-    - [Linux](#linux)
-  - [How to start a new game](#how-to-start-a-new-game)
-- [v3.11](#v311)
-  - [Highlights features](#highlights-features)
-  - [The main features in detail of Cocos2d-x v3.11](#the-main-features-in-detail-of-cocos2d-x-v311)
-    - [New memory model in JSB](#new-memory-model-in-jsb)
-    - [OpenSSL](#openssl)
-    - [Cocos2d-x JSB program debugging](#cocos2d-x-jsb-program-debugging)
-  - [Other changes](#other-changes)
+- [v3.13](#v313)
+  - [Highlights](#highlights)
+  - [The main features in detail of Cocos2d-x v3.13](#the-main-features-in-detail-of-cocos2d-x-v313)
+    - [Add VR plugin](#add-vr-plugin)
+    - [Support ETC1 alpha channel](#support-etc1-alpha-channel)
+    - [AudioEngine performance for Android 4.2+](#audioengine-performance-for-android-42)
+    - [Dirty region in canvas renderer](#dirty-region-in-canvas-renderer)
+    - [Android arm-64 support](#android-arm-64-support)
+    - [Switch to use gcc 4.9 on Android](#switch-to-use-gcc-49-on-android)
+    - [Upgrade CURL to 7.50.0](#upgrade-curl-to-7500)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Cocos2d-x 3.11 Release Notes #
+# Cocos2d-x 3.13 Release Notes #
 
 # Misc Information
 
 * [Full Changelog](https://github.com/cocos2d/cocos2d-x/blob/v3/CHANGELOG)
 
-# Requirements
+# v3.13
 
-## Runtime Requirements
+## Highlights
 
-* Android 2.3 or newer
-* iOS 5.0 or newer
-* OS X 10.7 or newer
-* Windows 7 or newer
-* Windows Phone 8.1
-* Windows 10 UWP
-* Linux Ubuntu 14.04 or newer
-* Mordern browsers and IE 9+ (On mobile platforms, only iOS and Android 5 activated WebGL support)
+* added VR plugins for Gear, Deepoon, Google Cardboard and Oculus.
+* support ETC1 alpha channel
+* fix AudioEngine performance for Android 4.2+
+* improve canvas renderer performance with dirty region 
+* add Andorid arm-64 support
+* switch to use gcc 4.9
+* upgrade CURL to 7.50.0
+* upgrade Spine to 3.4
+* upgrade GLFW to 3.2
 
-## Compiler Requirements
+## The main features in detail of Cocos2d-x v3.13
 
-* Xcode 5.1 or newer for iOS or Mac
-* gcc 4.9 or newer for Linux
-* ndk-r10c for Android
-* Visual Studio 2013 or newer for Windows (win32)
-* Visual Studio 2013 update4 or newer for Windows 8.1 universal Apps
-* Visual Studio 2015 or newer and Windows 10.0 (build 10074 or higher) for Windows 10.0 UWP Apps
+### Added VR plugins
 
-## How to run tests
+Support for Gear, Deepoon, Google Cardboard and Oculus has been added. Read about VR in our [Programmers Guide](http://www.cocos2d-x.org/docs/programmers-guide/vr/index.html)
 
-### Cocos Console
+### Support ETC1 alpha channel
 
-You can use [Cocos Console](www.cocos2d-x.org/wiki/Cocos2d-console) command line tool to run the test cases on almost all supported platforms.
+Thanks [halx99](https://github.com/halx99)'s contribution, now cocos2d-x supports ETC1 alpha channel by default.
 
-In console application:
-```
-// Enter cpp test folder
-cd tests/cpp-tests
-// Or enter js test folder
-cd tests/js-tests
-// Or enter lua test folder
-cd tests/lua-tests
-
-// Compile or run test case
-cocos compile -p ios|mac|android|win32|win8_1|metro|web -m debug|release
-cocos run -p ios|mac|android|win32|win8_1|metro|web -m debug|release
-```
-
-For example, if you want to run cpp test in release mode on Android, you can use the following command:
-
-```
-cocos run -p android -m release
-```
-
-### Mac OSX & iOS
-You can run the samples by:
-
-* Open __cocos2d-x/build__ folder, open __cocos2d_test.xcodeproj__
-* Select `cpp-tests`, `lua-tests`, `js-tests` for __iOS__ or __OS X__ target in scheme toolbar
-* Click __run__ button
-
-### Android
-You can run the samples by either using the command-line or Eclipse:
-
-**Using command line:**
-Perform the following steps:
-
-    $ cd cocos2d-x
-    $ ./setup.py
-    $ cd build
-    $ ./android-build.py cpp-empty-test -p 10
-    $ adb install cocos2d-x/tests/cpp-empty-test/proj.android/bin/CppEmptyTest-debug.apk
-
-Then click item on Android device to run tests. Available value of `-p` is the API level, cocos2d-x supports from level 10.
-
-**Using Eclipse:**
-Perform the following steps:
-
-    $ cd cocos2d-x
-    $ ./setup.py
-    $ cd build
-    $ ./android-build.py cpp-empty-test -p 10
-
-Next:
-
-* Import cocos2d-x Android project into Eclipse, the path used to import is __cocos/2d/platform/android__
-* Import `cpp-empty-test` Android project into Eclipse, the path used to import is __tests/cpp-empty-test/proj.android__
-* Build `cpp-empty-test` Android project and run
-
-### Windows
-You can run the samples by:
-
-* For win32 project, enter __cocos2d-x/build__, and open __cocos2d-win32.sln__
-* For win 8.1 project, enter __cocos2d-x/build__, and open __cocos2d-win8.1-universal.sln__
-* For win 10 project, enter __cocos2d-x/build__, and open __cocos2d-win10.sln__
-* Select running target
-* Click run button
-
-### Linux
-You can run the samples by:
-
-    $ cd cocos2d-x/build
-    $ ./install-deps-linux.sh
-    $ cd ../..
-
-Next:
-
-    $ mkdir build
-    $ cd build
-    $ cmake ../cocos2d-x
-    $ make -j4
-
-Then run:
-
-    $ cd bin/cpp-empty-test
-    $ ./cpp-empty-test
-
-## How to start a new game
-Use the __cocos__ console app to create a new game:
-
-```
-cocos new -l cpp|js|lua MyNewGame
-```
-
-# v3.11
-
-## Highlights features
-
-* upgrade Chipmunk to v7.0.1
-* use new memory model in JSB, don't have to invoke `retain/release` in JS, it is disabled by default
-* upgrade Curl to v7.48
-* upgrade OpenSSL to 1.0.2g
-* can use VSCode and new Firefox to debug cocos2d-x JSB programs
-
-## The main features in detail of Cocos2d-x v3.11
-
-### New memory model in JSB
-
-With new memory model, you don't have to care about object lifecycle. Which means you don't have to invoke `retain/release` in JS any more.
-
-Though we have finished many tests about this new memory model, we can't make sure it is too perfect to enable it by default. But you are appreciated if you can enable it to have a try. If you want to enable it, you should change the value of `CC_ENABLE_GC_FOR_NATIVE_OBJECTS` to 1 in `base/ccConfig.h` like this:
+If want to use ETC1 alpha chaneel, you should put `xxx.pkm` and `xxx.pkm@alpha` in the same folder, and use it like this:
 
 ```c++
-#ifdef CC_ENABLE_SCRIPT_BINDING
-  #ifndef CC_ENABLE_GC_FOR_NATIVE_OBJECTS
-  #define CC_ENABLE_GC_FOR_NATIVE_OBJECTS 1 // change to 1
-  #endif
-#endif
+auto sprite = Sprite::create("xxx.pkm");
 ```
 
-### OpenSSL
-Cocos2d-x has upgraded __OpenSSL__ to version __1.0.2g__.
+`xxx.pkm@alpha` is the resource for alpha channel. `@alpha` subfix is required by engine to load alpha texture automatically.
 
-Beginning __July 11, 2016__, Google Play will block publishing of any new apps or updates that use older versions of __OpenSSL__. It is important that you update the use of __OpenSSL__ in your projects. More detail information can refer to [this ticket](http://discuss.cocos2d-x.org/t/openssl-problem-again/28270).
+More detail usage can refer to the implementation of `Sprite1ETC1Alpha` in `tests/cpp-tests/Classes/SpriteTest/SpriteTest.cpp`.
 
-If you use v2.x or use older versions of v3.x, you can just update __CURL__ and __OpenSSL__.
-To do this:
+![](https://raw.githubusercontent.com/minggo/Pictures/master/etc1-alpha.png)
 
-* modify __Cocos2d-x root/external/config.json__ to update the dependency version. For v3.x the dependency version is `v3-deps-92`, and for v2.x it is `v2-deps-5`
-* execute the __download-deps.py__ script in your __Cocos2d-x root__.
+As you can see, the blue block in the middle of the picture is an ETC1 picture with alpha channel.
 
-```sh
-(jtsm @ 15 ~) $ cd cocos2d-x
+### AudioEngine performance for Android 4.2+
 
-(jtsm @ 15 ~/cocos2d-x) $ ./download-deps.py
+AudioEngine uses [OpenSL ES](https://developer.android.com/ndk/guides/audio/opensl-for-android.html) on Android, and it supports decoding audio source file to PCM data in codes since Android 4.2. Now AudioEngine uses this feature to fix the performance issue. The performane is the same as before if running on Android 4.1 or lower version. **Should preload first, or there is not performance improved for first time playing of the audio.**
 
-=======================================================
-==> Prepare to download external libraries!
-==> Ready to download 'v3-deps-92.zip' from 'https://github.com/cocos2d/cocos2d-x-3rd-party-libs-bin/archive/v3-deps-92.zip'
-==> WARNING: Couldnt grab the file size from remote, use 'zip_file_size' section in '/Users/jtsm/Chukong-Inc/cocos2d-x/external/config.json'
-==> Start to download, please wait ...
-==> Downloading finished!
-==> Extracting files, please wait ...
-==> Extraction done! ==> Copying files...
-==> Cleaning...
+![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance1.png)
+
+![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance2.png)
+
+![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance3.png)
+
+### Dirty region in canvas renderer
+
+In v3.12, we improved WebGL renderer in the web engine, this version have brought the dirty region algorithm to improve canvas renderer performance. Basically, it detect every region that have been changed between frames, then only render these parts instead of refresh the whole canvas. This technique is beneficial for many games in which the dynamic region is often limited, it can improve frame rate and reduce CPU usage, power consumation. It's desactivated by default, to activate it, you can do the following:
+
 ```
-Feel free to post on our <a href="http://discuss.cocos2d-x.org">forums</a> if you run into difficulty.
+// Enable dirty region algorithm
+if (cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
+    cc.renderer.enableDirtyRegion(true);
+    // Maximum dirty region count to activate the partial rendering process
+    cc.renderer.setDirtyRegionCountThreshold(6);
+}
+// Detect if dirty is enabled
+var enabled = isDirtyRegionEnabled();
+```
 
-### Cocos2d-x JSB program debugging
+### Android arm-64 support
 
-In previous version, can not use Firefox 30+ to debug cocos2d-x JSB programs. This limit is fixed since v3.11. And web console feature is added too. [This documentation](http://www.cocos2d-x.org/wiki/Javascript_Remote_Debugging) shows how to use Firefox to debug cocos2d-x JSB programs(this is a little difference from current usage).
+Now we provide arm-64 bit 3rd party libraries, which means can build 64-bit apps on Android. You can use the command to build 64-bit apps:
+```
+cocos run -p android --app-abi arm64-v8a
+```
 
-Of course you can use [VSCode](https://code.visualstudio.com/) to debug cocos2d-x JSB programs too. You can read about how to use VSCode to debug cocos2d-x JSB programs [here](http://discuss.cocos2d-x.org/t/use-vscode-to-debug-cocos2d-x-jsb-programs/27588).
+### Switch to use gcc 4.9 on Android
 
-## Other changes
-You can also take a look at the [full changelog](https://github.com/cocos2d/cocos2d-x/blob/v3/CHANGELOG).
+cocos2d-x switch to use clang in `v3.12`, but developers reported [some crash issue](https://github.com/cocos2d/cocos2d-x/issues/16244) that caused by using `clang+gnustl_static`, so we switch to use gcc 4.9. We will change to use `clang+c++_static` when `c++_static` is stable.
+
+### Upgrade CURL to 7.50.0
+
+Because CURL has [a bug about connect to IPV4 numerical IP address in NAT64 environment](https://github.com/curl/curl/issues/863), and it is fixed in v7.50.0, so we upgrade to this version when v7.50.0 is released.

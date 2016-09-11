@@ -1,7 +1,7 @@
 /****************************************************************************
 Copyright (c) 2009      Jason Booth
 Copyright (c) 2010-2012 cocos2d-x.org
-Copyright (c) 2013-2014 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
 
 http://www.cocos2d-x.org
 
@@ -113,12 +113,9 @@ public:
      */
     virtual void beginWithClear(float r, float g, float b, float a, float depthValue, int stencilValue);
 
-    /** End is key word of lua, use other name to export to lua.
-     * @js NA
+    /** Ends grabbing.
+     * @lua endToLua
      */
-    inline void endToLua(){ end();};
-
-    /** Ends grabbing. */
     virtual void end();
 
     /** Clears the texture with a color. 

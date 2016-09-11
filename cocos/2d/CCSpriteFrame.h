@@ -2,7 +2,7 @@
 Copyright (c) 2008-2011 Ricardo Quesada
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
-Copyright (c) 2013-2014 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
 
 http://www.cocos2d-x.org
 
@@ -215,9 +215,9 @@ public:
 
     /** Get the polygonInfo for this sprite
      *
-     * @return polygonInfo structure
+     * @return a reference to the polygonInfo structure
      */
-    const PolygonInfo &getPolygonInfo() const;
+    const PolygonInfo& getPolygonInfo() const;
 
     /** Check if sprite frame is a polygon sprite
      *

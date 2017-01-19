@@ -2,114 +2,92 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [v3.13](#v313)
+- [v3.14](#v314)
   - [新特性](#%E6%96%B0%E7%89%B9%E6%80%A7)
-  - [主要特性的详细介绍](#%E4%B8%BB%E8%A6%81%E7%89%B9%E6%80%A7%E7%9A%84%E8%AF%A6%E7%BB%86%E4%BB%8B%E7%BB%8D)
-    - [增加VR插件](#%E5%A2%9E%E5%8A%A0vr%E6%8F%92%E4%BB%B6)
-    - [支持ETC1 alpha通道](#%E6%94%AF%E6%8C%81etc1-alpha%E9%80%9A%E9%81%93)
-    - [AudioEngin性能提升](#audioengin%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87)
-    - [脏矩形算法](#%E8%84%8F%E7%9F%A9%E5%BD%A2%E7%AE%97%E6%B3%95)
-    - [支持Android 64位应用](#%E6%94%AF%E6%8C%81android-64%E4%BD%8D%E5%BA%94%E7%94%A8)
-    - [Android切换回gcc 4.9](#android%E5%88%87%E6%8D%A2%E5%9B%9Egcc-49)
-    - [CURL升级到7.50.0](#curl%E5%8D%87%E7%BA%A7%E5%88%B07500)
-  - [其他改动](#%E5%85%B6%E4%BB%96%E6%94%B9%E5%8A%A8)
+  - [特性详细介绍](#%E7%89%B9%E6%80%A7%E8%AF%A6%E7%BB%86%E4%BB%8B%E7%BB%8D)
+    - [所有平台使用luajit 2.10-beta2](#%E6%89%80%E6%9C%89%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8luajit-210-beta2)
+    - [Sprite支持九宫格特性](#sprite%E6%94%AF%E6%8C%81%E4%B9%9D%E5%AE%AB%E6%A0%BC%E7%89%B9%E6%80%A7)
+    - [支持Spine二进制格式](#%E6%94%AF%E6%8C%81spine%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%A0%BC%E5%BC%8F)
+    - [新增加动作类](#%E6%96%B0%E5%A2%9E%E5%8A%A0%E5%8A%A8%E4%BD%9C%E7%B1%BB)
+  - [已知问题](#%E5%B7%B2%E7%9F%A5%E9%97%AE%E9%A2%98)
+  - [其他](#%E5%85%B6%E4%BB%96)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# v3.13
+# v3.14
 
 ## 新特性
 
-* 增加了VR插件，包括**GearVR**、**GVR(Cardboard和Daydream)**、**DeepoonVR**和**OculusVR**
-* 支持ETC1 alpha通道
-* 解决了AudioEngin的性能问题，在Android 4.2+有效
-* 通过脏矩形算法提升Canvas渲染器性能
-* 支持Android 64位应用
-* 集成[AnySDK][1]
-* Android切换回gcc 4.9
-* CURL升级到7.50.0
-* Spine升级到3.4
-* GLFW升级到3.2
+* 支持Spine二进制格式
+* 所有平台使用luajit 2.10-beta2
+* 新增动作类：`ResizeBy`和`ResizeTo`
+* Android模拟支持关闭多点触摸
+* Sprite支持九宫格特性
+* 动作类新增功能，可以根据tag查询某一节点正在运行的动作数量
+* Button类可以设置title内容
+* EditBox支持文本水平对齐
+* 支持Mac平台手柄
 
-## 主要特性的详细介绍
+## 特性详细介绍
 
-### 增加VR插件
+### 所有平台使用luajit 2.10-beta2
 
-支持了Gear、Deepon、Google Cardboard和Oculus插件。具体的使用方法可以参考[Programmers Guide](http://www.cocos2d-x.org/docs/programmers-guide/vr/index.html)。
+之前的luajit版本无法在PC上方便地编译出arm64的字节码，需要用真机（比如iPhone6真机)编译，因此在之前的版本，iOS 64位使用的是lua，iOS 32位使用的是luajit。
 
-### 支持ETC1 alpha通道
+luajit 2.10-beta2版本，可以方便地在PC平台编译出arm64位的字节码，因此我们在各平台都使用了luajit，这样能够提升性能。如果使用cocos命令编译、打包的话，那么cocos命令会自动编译出对应平台的字节码，如果有生成64位字节码的话，那么会把这些字节码放到`64-bit`目录下。当然你也可以通过`cocos luacompile`自己编译字节码，具体的使用方式可以参考`cocos luacompile -h`输出的帮助信息。
 
-感谢[halx99](https://github.com/halx99)的贡献，cocos2d-x支持ETC1 alpha通道。
+通过cocos命令编译、打包生成的字节码时各平台的情况如下：
 
-要想使用ETC1 alpha通道，必须在相同目录下提供`xxx.pkm`和`xxx.pkm@alpha`，代码使用方法如下：
+平台 | 生成32位字节码 | 生成64位字节码 |
+---|---|---
+iOS | 是 | 是
+Android | 是，如果APP\_ABI的内容不是只包含64位架构(`APP_ABI := arm64-v8a`) | 是，如果APP\_ABI包含了64位架构，比如`APP_ABI := arm64-v8a ...`
+Mac | 否 | 是
+Windows | 是 | 否
+Linux | 否 |否
+
+### Sprite支持九宫格特性
+
+Sprite现在支持九宫格特性了，使用方式如下
 
 ```c++
-auto sprite = Sprite::create("xxx.pkm");
+auto sprite = Sprite::create(...);
+// set center rect
+// the origin is top-left
+sprite->setCenterRectNormalized(Rect(x, y, width, heigh));
 ```
 
-引擎会自动去加载`xxx.pkm@alpha`作为alpha通道数据。更详细的使用方式请参考`tests/cpp-tests/Classes/SpriteTest/SpriteTest.cpp`里的`Sprite1ETC1Alpha `测试例子。
+详细信息可以参考`Sprite::setCenterNormalized()`的注释。
 
-![](https://raw.githubusercontent.com/minggo/Pictures/master/etc1-alpha.png)
+![sprite-slice](https://raw.githubusercontent.com/minggo/Pictures/master/sprite-slice.png)
 
-图中蓝色部分就是带alpha通道的ETC1图片。
+### 支持Spine二进制格式
 
-### AudioEngin性能提升
+使用方式没有改变，只是文件格式变成了二进制格式。这样的好处就是解析效率更高，文件更小。具体的使用方法如下：
 
-Android平台下，AudioEngine使用[OpenSL ES](https://developer.android.com/ndk/guides/audio/opensl-for-android.html)播放声音。从Android 4.2开始，OpenSL ES支持解码声音文件为PCM数据，引擎正是利用这个以特性来缓存解码后数据以提升性能。因此，该性能提升只在Android 4.2及以上版本有效。**需要先preload，否则第一次播放性能没有很大提升**。
+```c++
+skeletonNode = SkeletonAnimation::createWithBinaryFile("spine/spineboy.skel", "spine/spineboy.atlas", 0.6f);
 
-
-![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance1.png)
-
-![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance2.png)
-
-![](https://raw.githubusercontent.com/minggo/Pictures/master/audio/audio-performance3.png)
-
-### 集成[AnySDK][1]
-
-[AnySDK][1]为CP商提供一套第三方SDK接入解决方案，整个接入过程，不改变任何SDK的功能、特性、参数等，对于最终玩家而言是完全透明无感知的。支持的第三方SDK包括**渠道SDK**、**用户系统**、**支付系统**、**广告系统**、**统计系统**、**分享系统**等。
-
-可以通过如下方法集成[AnySDK][1]
-
-```
-cocos package import anysdk -p PROJECT_PATH --anysdk
+...
 ```
 
-`PROJECT_PATH`是游戏工程的根目录，比如`COCOS2DX_ROOT/tests/cpp-empty-test`。
+![spine-binary](https://raw.githubusercontent.com/minggo/Pictures/master/spine-binary.png)
 
-通过上面命令后，[AnySDK][1]框架就集成到了游戏项目中，可以在代码里调用AnySDK接口接入各种第三方SDK了。[AnySDK][1]的详细介绍和使用方法请参考[AnySDK][1]官网。
+### 新增加动作类
 
-### 脏矩形算法
+新增加两个动作类：`ResizeBy`和`ResizeTo`。和`ScaleBy`、`ScaleTo`不同的是，`ResizeBy`和`ResizeTo`改变的是节点的content size的大小。这种动作对于支持九宫格特性的节点的缩放效果比`ScaleBy`和`ScaleTo`好，因为`ScaleBy`和`ScaleTo`是对节点做整体缩放。效果对比如下：
 
-在v3.12中我们通过重构WebGL渲染器大幅度提升了Web引擎的性能，在这个版本中，我们又实现了脏矩形算法来提升Canvas渲染器的性能。脏矩形算法允许引擎只渲染当前帧中和前一帧不同的区域，而不是渲染整个画布，大大降低填充率，可以同时带来渲染效率的提升以及CPU使用率和耗电量的降低。对于相对静态的游戏画面来说，非常有效。这个功能默认是关闭的，开启它可以通过下面的代码：
+![resize-action-effect](https://raw.githubusercontent.com/minggo/Pictures/master/resize-action-effect.png)
 
-```
-// 开启脏矩形算法
-if (cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
-    cc.renderer.enableDirtyRegion(true);
-    // 设置允许用脏矩形算法进行局部渲染的最高脏矩形数量
-    cc.renderer.setDirtyRegionCountThreshold(6);
-}
-// 检查脏矩形算法是否开启
-var enabled = isDirtyRegionEnabled();
-```
+## 已知问题
 
-### 支持Android 64位应用
+如果使用Xcode 8.2，那么lua工程会在iOS模拟器上崩溃。通过调试发现崩溃在`lua_open`函数的调用上。如果使用Xcode 8.1或一下版本，那么没有问题。我们怀疑这是Xcode的bug，在v3.14无法解决。使用lua的开发者在位iOS平台开发时有两个选择：
 
-该版本提供了Android 64位的第三方库，因此可以编译出64位的Android应用。可以使用如下命令编译、运行64位Android程序：
+* 使用Xcode 8.1或者一下版本
+* 使用Xcode 8.2，在Mac或者iOS真机开发、调试
 
-```
-cocos run -p android --app-abi arm64-v8a
-```
+该问题的进展可以跟踪[这个issue](https://github.com/cocos2d/cocos2d-x/issues/17043)。
 
-### Android切换回gcc 4.9
+## 其他
 
-cocos2d-x 3.12时使用了clang编译器，结果发现了[崩溃问题](https://github.com/cocos2d/cocos2d-x/issues/16244)。通过测试发现该问题是由于使用`clang + gnustl_static`造成的，因此该版本切换回使用gcc 4.9。当`c++_static`稳定后再切换成clang。
-
-### CURL升级到7.50.0
-
-CURL 7.50.0解决了[在NAT64环境连接IPV4地址格式的IP地址错误](https://github.com/curl/curl/issues/863)问题，因此引擎及时升级了CURL版本。
-
-## 其他改动
-更完整的改动列表可以阅读[full changelog](https://github.com/cocos2d/cocos2d-x/blob/v3/CHANGELOG)。
-
-[1]: http://www.anysdk.com/
+[详细的改动内容](https://github.com/cocos2d/cocos2d-x/blob/v3/CHANGELOG)。

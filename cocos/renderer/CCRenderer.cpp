@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2013-2017 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -898,7 +898,7 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
         return true;
 
     auto director = Director::getInstance();
-    Rect visiableRect(director->getVisibleOrigin(), director->getVisibleSize());
+    Rect visibleRect(director->getVisibleOrigin(), director->getVisibleSize());
     
     // transform center point to screen space
     float hSizeX = size.width/2;
@@ -912,11 +912,11 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
     float wshh = std::max(fabsf(hSizeX * transform.m[1] + hSizeY * transform.m[5]), fabsf(hSizeX * transform.m[1] - hSizeY * transform.m[5]));
     
     // enlarge visible rect half size in screen coord
-    visiableRect.origin.x -= wshw;
-    visiableRect.origin.y -= wshh;
-    visiableRect.size.width += wshw * 2;
-    visiableRect.size.height += wshh * 2;
-    bool ret = visiableRect.containsPoint(v2p);
+    visibleRect.origin.x -= wshw;
+    visibleRect.origin.y -= wshh;
+    visibleRect.size.width += wshw * 2;
+    visibleRect.size.height += wshh * 2;
+    bool ret = visibleRect.containsPoint(v2p);
     return ret;
 }
 

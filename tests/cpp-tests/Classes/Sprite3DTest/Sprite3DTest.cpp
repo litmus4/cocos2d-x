@@ -1,6 +1,6 @@
 /****************************************************************************
  Copyright (c) 2012 cocos2d-x.org
- Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2013-2017 Chukong Technologies Inc.
  
  http://www.cocos2d-x.org
  
@@ -786,6 +786,7 @@ void Sprite3DEffectTest::addNewSpriteWithCoords(Vec2 p)
     material->setTechnique("outline_noneskinned");
     sprite->setMaterial(material);
     sprite->setScale(6.f);
+    Director::getInstance()->getTextureCache()->removeUnusedTextures();
     
     //add to scene
     addChild( sprite );
@@ -895,7 +896,7 @@ Sprite3DWithSkinTest::Sprite3DWithSkinTest()
     listener->onTouchesEnded = CC_CALLBACK_2(Sprite3DWithSkinTest::onTouchesEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
-    // swich animation quality. In fact, you can set the sprite3d out of frustum to Animate3DQuality::QUALITY_NONE, it can save a lot of cpu time
+    // switch animation quality. In fact, you can set the sprite3d out of frustum to Animate3DQuality::QUALITY_NONE, it can save a lot of cpu time
     MenuItemFont::setFontName("fonts/arial.ttf");
     MenuItemFont::setFontSize(15);
     _animateQuality = (int)Animate3DQuality::QUALITY_LOW;
@@ -1430,7 +1431,7 @@ Sprite3DWithOBBPerformanceTest::Sprite3DWithOBBPerformanceTest()
 }
 std::string Sprite3DWithOBBPerformanceTest::title() const
 {
-    return "OBB Collison Performance Test";
+    return "OBB Collision Performance Test";
 }
 std::string Sprite3DWithOBBPerformanceTest::subtitle() const
 {

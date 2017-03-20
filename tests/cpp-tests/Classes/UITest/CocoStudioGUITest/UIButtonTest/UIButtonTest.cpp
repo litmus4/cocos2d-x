@@ -22,6 +22,7 @@ UIButtonTests::UIButtonTests()
     ADD_TEST_CASE(UIButtonCloneTest);
     ADD_TEST_CASE(Issue12249);
     ADD_TEST_CASE(Issue17116);
+    ADD_TEST_CASE(UIButtonWithPolygonInfo);
 }
 
 // UIButtonTest
@@ -438,7 +439,7 @@ bool UIButtonTest_Title::init()
         button->setTitleText("Title Button!");
         button->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f));
         button->setTitleColor(Color3B::YELLOW);
-        CCASSERT(button->getTitleColor() == Color3B::YELLOW, "Button setTitleColotr & getTitleColor not match!");
+        CCASSERT(button->getTitleColor() == Color3B::YELLOW, "Button setTitleColor & getTitleColor not match!");
         button->addTouchEventListener(CC_CALLBACK_2(UIButtonTest_Title::touchEvent, this));
         _uiLayer->addChild(button);
         button->setFlippedX(true);
@@ -1208,6 +1209,33 @@ bool Issue17116::init()
         button->setPosition(Vec2(visibleSize.width/2, visibleSize.height/2));
         button->setOpacity(100);
         addChild(button);
+        return true;
+    }
+    return false;
+}
+
+UIButtonWithPolygonInfo::UIButtonWithPolygonInfo()
+{
+}
+
+bool UIButtonWithPolygonInfo::init()
+{
+    if (UIScene::init())
+    {
+        auto visibleSize = Director::getInstance()->getVisibleSize();
+        
+        SpriteFrameCache::getInstance()->addSpriteFramesWithFile("Images/poly_test_textures.plist");
+        auto button = ui::Button::create();
+        button->loadTextureNormal("poly_test/wheel_disc_back.png", ui::Widget::TextureResType::PLIST);
+        button->setPosition(Vec2(visibleSize.width/2 - 100, visibleSize.height/2));
+        button->setScale(0.5);
+        button->setScale9Enabled(true);
+        addChild(button);
+        
+        auto buttonCopy = button->clone();
+        button->setPosition(Vec2(visibleSize.width/2 + 100, visibleSize.height/2));
+        addChild(buttonCopy);
+        
         return true;
     }
     return false;

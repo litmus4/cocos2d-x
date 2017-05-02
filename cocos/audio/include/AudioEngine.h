@@ -40,6 +40,11 @@
 #undef ERROR
 #endif // ERROR
 
+namespace PxcUtil
+{
+	class Lock;
+}
+
 /**
  * @addtogroup audio
  * @{
@@ -281,6 +286,12 @@ public:
      */
     static AudioProfile* getProfile(const std::string &profileName);
 
+	/**
+	* Preload audio file.
+	* @param filePath The file path of an audio.
+	*/
+	static void preload(const std::string& filePath, bool sync = false);
+
 protected:
     
     static void remove(int audioID);
@@ -335,6 +346,8 @@ protected:
     static ProfileHelper* _defaultProfileHelper;
     
     static AudioEngineImpl* _audioEngineImpl;
+
+	static PxcUtil::Lock _lock;
     
     friend class AudioEngineImpl;
 };

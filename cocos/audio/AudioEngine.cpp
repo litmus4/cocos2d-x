@@ -30,6 +30,8 @@
 #include "platform/CCFileUtils.h"
 #include "base/ccUtils.h"
 
+#include "PxcUtil/Scattered.h"
+
 #if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
 #include "android/AudioEngine-inl.h"
 #elif CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_MAC
@@ -60,6 +62,7 @@ unsigned int AudioEngine::_maxInstances = MAX_AUDIOINSTANCES;
 AudioEngine::ProfileHelper* AudioEngine::_defaultProfileHelper = nullptr;
 std::unordered_map<int, AudioEngine::AudioInfo> AudioEngine::_audioIDInfoMap;
 AudioEngineImpl* AudioEngine::_audioEngineImpl = nullptr;
+PxcUtil::Lock AudioEngine::_lock = PxcUtil::Lock();
 
 void AudioEngine::end()
 {
@@ -87,6 +90,7 @@ bool AudioEngine::lazyInit()
 
 int AudioEngine::play2d(const std::string& filePath, bool loop, float volume, const AudioProfile *profile)
 {
+	CRI_SEC(_lock)
     int ret = AudioEngine::INVALID_AUDIO_ID;
 
     do {
@@ -156,6 +160,7 @@ int AudioEngine::play2d(const std::string& filePath, bool loop, float volume, co
 
 void AudioEngine::setLoop(int audioID, bool loop)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.loop != loop){
         _audioEngineImpl->setLoop(audioID, loop);
@@ -165,6 +170,7 @@ void AudioEngine::setLoop(int audioID, bool loop)
 
 void AudioEngine::setVolume(int audioID, float volume)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end()){
         if (volume < 0.0f) {
@@ -183,6 +189,7 @@ void AudioEngine::setVolume(int audioID, float volume)
 
 void AudioEngine::pause(int audioID)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.state == AudioState::PLAYING){
         _audioEngineImpl->pause(audioID);
@@ -192,6 +199,7 @@ void AudioEngine::pause(int audioID)
 
 void AudioEngine::pauseAll()
 {
+	CRI_SEC(_lock)
     auto itEnd = _audioIDInfoMap.end();
     for (auto it = _audioIDInfoMap.begin(); it != itEnd; ++it)
     {
@@ -205,6 +213,7 @@ void AudioEngine::pauseAll()
 
 void AudioEngine::resume(int audioID)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.state == AudioState::PAUSED){
         _audioEngineImpl->resume(audioID);
@@ -214,6 +223,7 @@ void AudioEngine::resume(int audioID)
 
 void AudioEngine::resumeAll()
 {
+	CRI_SEC(_lock)
     auto itEnd = _audioIDInfoMap.end();
     for (auto it = _audioIDInfoMap.begin(); it != itEnd; ++it)
     {
@@ -227,6 +237,7 @@ void AudioEngine::resumeAll()
 
 void AudioEngine::stop(int audioID)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end()){
         _audioEngineImpl->stop(audioID);
@@ -249,6 +260,7 @@ void AudioEngine::remove(int audioID)
 
 void AudioEngine::stopAll()
 {
+	CRI_SEC(_lock)
     if(!_audioEngineImpl){
         return;
     }
@@ -266,6 +278,7 @@ void AudioEngine::stopAll()
 
 void AudioEngine::uncache(const std::string &filePath)
 {
+	CRI_SEC(_lock)
     if(_audioPathIDMap.find(filePath) != _audioPathIDMap.end()){
         auto itEnd = _audioPathIDMap[filePath].end();
         for (auto it = _audioPathIDMap[filePath].begin() ; it != itEnd; ++it) {
@@ -290,6 +303,7 @@ void AudioEngine::uncache(const std::string &filePath)
 
 void AudioEngine::uncacheAll()
 {
+	CRI_SEC(_lock)
     if(!_audioEngineImpl){
         return;
     }
@@ -299,6 +313,7 @@ void AudioEngine::uncacheAll()
 
 float AudioEngine::getDuration(int audioID)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.state != AudioState::INITIALZING)
     {
@@ -314,6 +329,7 @@ float AudioEngine::getDuration(int audioID)
 
 bool AudioEngine::setCurrentTime(int audioID, float time)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.state != AudioState::INITIALZING){
         return _audioEngineImpl->setCurrentTime(audioID, time);
@@ -324,6 +340,7 @@ bool AudioEngine::setCurrentTime(int audioID, float time)
 
 float AudioEngine::getCurrentTime(int audioID)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end() && it->second.state != AudioState::INITIALZING){
         return _audioEngineImpl->getCurrentTime(audioID);
@@ -333,6 +350,7 @@ float AudioEngine::getCurrentTime(int audioID)
 
 void AudioEngine::setFinishCallback(int audioID, const std::function<void (int, const std::string &)> &callback)
 {
+	CRI_SEC(_lock)
     auto it = _audioIDInfoMap.find(audioID);
     if (it != _audioIDInfoMap.end()){
         _audioEngineImpl->setFinishCallback(audioID, callback);
@@ -413,6 +431,21 @@ AudioProfile* AudioEngine::getProfile(const std::string &name)
     } else {
         return nullptr;
     }
+}
+
+void AudioEngine::preload(const std::string& filePath, bool sync)
+{
+	CRI_SEC(_lock)
+	lazyInit();
+
+	if (_audioEngineImpl)
+	{
+		if (!FileUtils::getInstance()->isFileExist(filePath)) {
+			return;
+		}
+
+		_audioEngineImpl->preload(filePath, sync);
+	}
 }
 
 #endif

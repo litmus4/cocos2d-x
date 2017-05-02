@@ -55,12 +55,16 @@ ArmatureAnimation::ArmatureAnimation()
     , _movementID("")
     , _toIndex(0)
     , _ignoreFrameEvent(false)
+	, _partRegEventType(START)
     , _onMovementList(false)
     , _movementListLoop(false)
     , _movementListDurationTo(-1)
+	, _partBoneMain(nullptr)
+	, _partWholeAnim(nullptr)
     , _userObject(nullptr)
 
     , _movementEventCallFunc(nullptr)
+	, _partMovementEventCallFunc(nullptr)
     , _frameEventCallFunc(nullptr)
     , _movementEventTarget(nullptr)
     , _frameEventTarget(nullptr)
@@ -76,6 +80,14 @@ ArmatureAnimation::~ArmatureAnimation(void)
     CC_SAFE_RELEASE_NULL(_animationData);
 
     CC_SAFE_RELEASE_NULL(_userObject);
+
+	tPartAnimationList::iterator iter = _partAnimationList.begin();
+	for (; iter != _partAnimationList.end(); iter++)
+	{
+		if (iter->second != nullptr)
+			iter->second->release();
+	}
+	_partAnimationList.clear();
 }
 
 bool ArmatureAnimation::init(Armature *armature)
@@ -86,6 +98,8 @@ bool ArmatureAnimation::init(Armature *armature)
         _armature = armature;
 
         _tweenList.clear();
+		_partTweenMap.clear();
+		_partAnimationList.clear();
 
         bRet = true;
     }
@@ -104,6 +118,26 @@ void ArmatureAnimation::pause()
     ProcessBase::pause();
 }
 
+void ArmatureAnimation::pausePart(const std::string& boneName)
+{
+	Bone* bone = _armature->getBone(boneName);
+	if (bone == nullptr)
+		return;
+
+	std::map<Tween*, Bone*>::iterator itTween = _partTweenMap.begin();
+	for (; itTween != _partTweenMap.end(); itTween++)
+	{
+		if (itTween->second == bone)
+			itTween->first->pause();
+	}
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	for (; itAnim != _partAnimationList.end(); itAnim++)
+	{
+		if (itAnim->first == bone && itAnim->second != nullptr)
+			itAnim->second->pause();
+	}
+}
+
 void ArmatureAnimation::resume()
 {
     for (const auto& tween : _tweenList)
@@ -111,6 +145,26 @@ void ArmatureAnimation::resume()
         tween->resume();
     }
     ProcessBase::resume();
+}
+
+void ArmatureAnimation::resumePart(const std::string& boneName)
+{
+	Bone* bone = _armature->getBone(boneName);
+	if (bone == nullptr)
+		return;
+
+	std::map<Tween*, Bone*>::iterator itTween = _partTweenMap.begin();
+	for (; itTween != _partTweenMap.end(); itTween++)
+	{
+		if (itTween->second == bone)
+			itTween->first->resume();
+	}
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	for (; itAnim != _partAnimationList.end(); itAnim++)
+	{
+		if (itAnim->first == bone && itAnim->second != nullptr)
+			itAnim->second->resume();
+	}
 }
 
 void ArmatureAnimation::stop()
@@ -121,6 +175,35 @@ void ArmatureAnimation::stop()
     }
     _tweenList.clear();
     ProcessBase::stop();
+}
+
+void ArmatureAnimation::stopPart(const std::string& boneName)
+{
+	Bone* bone = _armature->getBone(boneName);
+	if (bone == nullptr)
+		return;
+
+	std::map<Tween*, Bone*>::iterator itTween = _partTweenMap.begin();
+	for (; itTween != _partTweenMap.end(); itTween++)
+	{
+		if (itTween->second == bone)
+		{
+			itTween->first->stop();
+			itTween->second = nullptr;
+		}
+	}
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	while (itAnim != _partAnimationList.end())
+	{
+		if (itAnim->first == bone && itAnim->second != nullptr)
+		{
+			itAnim->second->stop();
+			itAnim->second->release();
+			itAnim = _partAnimationList.erase(itAnim);
+		}
+		else
+			itAnim++;
+	}
 }
 
 void ArmatureAnimation::setAnimationScale(float animationScale )
@@ -256,6 +339,80 @@ void ArmatureAnimation::play(const std::string& animationName, int durationTo,  
     _armature->update(0);
 }
 
+void ArmatureAnimation::playPart(const std::string& animationName, const std::string& boneName, int durationTo, int loop, float speedScale)
+{
+	if (animationName.empty())
+	{
+		CCLOG("_animationData can not be null");
+		return;
+	}
+
+	ArmatureAnimation* pPartAnim = ArmatureAnimation::create(_armature);
+	if (nullptr == pPartAnim)
+		return;
+	pPartAnim->retain();
+
+	pPartAnim->_movementData = _animationData->getMovement(animationName.c_str());
+	if (nullptr == pPartAnim->_movementData)
+	{
+		CCLOG("_movementData can not be null");
+		return;
+	}
+
+	//! Get key frame count
+	pPartAnim->_rawDuration = pPartAnim->_movementData->duration;
+
+	pPartAnim->_movementID = animationName;
+
+	pPartAnim->_speedScale = speedScale;
+	pPartAnim->_processScale = speedScale * pPartAnim->_movementData->scale;
+
+	//! Further processing parameters
+	durationTo = (durationTo == -1) ? pPartAnim->_movementData->durationTo : durationTo;
+
+	int durationTween = pPartAnim->_movementData->durationTween == 0 ?
+		pPartAnim->_rawDuration : pPartAnim->_movementData->durationTween;
+
+	cocos2d::tweenfunc::TweenType tweenEasing = pPartAnim->_movementData->tweenEasing;
+	loop = (loop < 0) ? pPartAnim->_movementData->loop : loop;
+
+	pPartAnim->_onMovementList = false;
+
+	pPartAnim->play(durationTo, durationTween, loop, tweenEasing);
+
+	if (pPartAnim->_rawDuration == 0)
+	{
+		pPartAnim->_loopType = SINGLE_FRAME;
+	}
+	else
+	{
+		if (loop)
+		{
+			pPartAnim->_loopType = ANIMATION_TO_LOOP_FRONT;
+		}
+		else
+		{
+			pPartAnim->_loopType = ANIMATION_NO_LOOP;
+		}
+		pPartAnim->_durationTween = durationTween;
+	}
+
+	Bone* bone = _armature->getBone(boneName);
+	if (bone != nullptr)
+	{
+		playPartEveryBone(bone, bone, pPartAnim->_movementData, pPartAnim->_processScale,
+				durationTo, durationTween, loop, tweenEasing);
+
+		pPartAnim->_partBoneMain = bone;
+		pPartAnim->_partWholeAnim = this;
+		_partAnimationList.push_back(std::make_pair(bone, pPartAnim));
+
+		_armature->update(0);
+	}
+	else
+		pPartAnim->release();
+}
+
 void ArmatureAnimation::playByIndex(int animationIndex, int durationTo, int loop)
 {
     playWithIndex(animationIndex, durationTo, loop);
@@ -346,11 +503,34 @@ ssize_t ArmatureAnimation::getMovementCount() const
 void ArmatureAnimation::update(float dt)
 {
     ProcessBase::update(dt);
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	for (; itAnim != _partAnimationList.end(); itAnim++)
+	{
+		if (itAnim->second != nullptr)
+			itAnim->second->update(dt);
+	}
     
     for (const auto &tween : _tweenList)
     {
         tween->update(dt);
     }
+	std::map<Tween*, Bone*>::iterator itTween = _partTweenMap.begin();
+	for (; itTween != _partTweenMap.end(); itTween++)
+	{
+		if (itTween->second != nullptr)
+			itTween->first->update(dt);
+	}
+
+	std::vector<tPartAnimationList::iterator>::iterator itGarb = _partGarbageAnims.begin();
+	for (; itGarb != _partGarbageAnims.end(); itGarb++)
+	{
+		if ((*itGarb) != _partAnimationList.end() && (*itGarb)->second != nullptr)
+		{
+			(*itGarb)->second->release();
+			_partAnimationList.erase(*itGarb);
+		}
+	}
+	_partGarbageAnims.clear();
 
     if(_frameEventQueue.size() > 0 || _movementEventQueue.size() > 0)
     {
@@ -388,7 +568,10 @@ void ArmatureAnimation::update(float dt)
         
         if(_movementEventTarget)
         {
-            (_movementEventTarget->*_movementEventCallFunc)(event->armature, event->movementType, event->movementID);
+			if (_movementEventCallFunc != nullptr)
+				(_movementEventTarget->*_movementEventCallFunc)(event->armature, event->movementType, event->movementID);
+			if (_partMovementEventCallFunc != nullptr)
+				(_movementEventTarget->*_partMovementEventCallFunc)(event->armature, event->partBoneName, event->movementType, event->movementID);
         }
         
         if (_movementEventListener)
@@ -419,7 +602,10 @@ void ArmatureAnimation::updateHandler()
             {
                 _nextFrameIndex = _durationTween;
 
-                movementEvent(_armature, START, _movementID.c_str());
+				if (_partWholeAnim != nullptr)
+					_partWholeAnim->partMovementEvent(_armature, getPartBoneName(), START, _movementID.c_str());
+				else
+					movementEvent(_armature, START, _movementID.c_str());
 
                 break;
             }
@@ -432,7 +618,13 @@ void ArmatureAnimation::updateHandler()
             _isComplete = true;
             _isPlaying = false;
 
-            movementEvent(_armature, COMPLETE, _movementID.c_str());
+			if (_partWholeAnim != nullptr)
+			{
+				_partWholeAnim->partMovementEvent(_armature, getPartBoneName(), COMPLETE, _movementID.c_str());
+				_partWholeAnim->onPartEnd(_partBoneMain);
+			}
+			else
+				movementEvent(_armature, COMPLETE, _movementID.c_str());
 
             updateMovementList();
         }
@@ -444,7 +636,10 @@ void ArmatureAnimation::updateHandler()
             _currentFrame = _nextFrameIndex == 0 ? 0 : fmodf(_currentFrame, _nextFrameIndex);
             _nextFrameIndex = _durationTween > 0 ? _durationTween : 1;
 
-            movementEvent(_armature, START, _movementID.c_str());
+			if (_partWholeAnim != nullptr)
+				_partWholeAnim->partMovementEvent(_armature, getPartBoneName(), START, _movementID.c_str());
+			else
+				movementEvent(_armature, START, _movementID.c_str());
         }
         break;
         default:
@@ -453,7 +648,10 @@ void ArmatureAnimation::updateHandler()
             _currentFrame = fmodf(_currentFrame, _nextFrameIndex);
             _toIndex = 0;
 
-            movementEvent(_armature, LOOP_COMPLETE, _movementID.c_str());
+			if (_partWholeAnim != nullptr)
+				_partWholeAnim->partMovementEvent(_armature, getPartBoneName(), LOOP_COMPLETE, _movementID.c_str());
+			else
+				movementEvent(_armature, LOOP_COMPLETE, _movementID.c_str());
         }
         break;
         }
@@ -475,6 +673,17 @@ void ArmatureAnimation::setMovementEventCallFunc(Ref *target, SEL_MovementEventC
     _movementEventCallFunc = callFunc;
 }
 
+void ArmatureAnimation::setPartMovementEventCallFunc(cocos2d::Ref* target, SEL_PartMovementEventCallFunc callFunc)
+{
+	_movementEventTarget = target;
+	_partMovementEventCallFunc = callFunc;
+}
+
+void ArmatureAnimation::registerPartEventType(MovementEventType movementType)
+{
+	_partRegEventType = movementType;
+}
+
 void ArmatureAnimation::setFrameEventCallFunc(Ref *target, SEL_FrameEventCallFunc callFunc)
 {
     _frameEventTarget = target;
@@ -488,6 +697,13 @@ void ArmatureAnimation::setMovementEventCallFunc(std::function<void(Armature *ar
 void ArmatureAnimation::setFrameEventCallFunc(std::function<void(Bone *bone, const std::string& frameEventName, int originFrameIndex, int currentFrameIndex)> listener)
 {
     _frameEventListener = listener;
+}
+
+std::string ArmatureAnimation::getPartBoneName()
+{
+	if (_partBoneMain != nullptr)
+		return _partBoneMain->getName();
+	return "";
 }
 
 void ArmatureAnimation::setUserObject(Ref *pUserObject)
@@ -524,6 +740,18 @@ void ArmatureAnimation::movementEvent(Armature *armature, MovementEventType move
     }
 }
 
+void ArmatureAnimation::partMovementEvent(Armature* armature, const std::string& boneName, MovementEventType movementType, const std::string& movementID)
+{
+	if (_movementEventTarget && _partMovementEventCallFunc && movementType == _partRegEventType)
+	{
+		MovementEvent* movementEvent = new (std::nothrow) MovementEvent();
+		movementEvent->armature = armature;
+		movementEvent->movementType = movementType;
+		movementEvent->movementID = movementID;
+		movementEvent->partBoneName = boneName;
+		_movementEventQueue.push(movementEvent);
+	}
+}
 
 void ArmatureAnimation::updateMovementList()
 {
@@ -554,6 +782,75 @@ void ArmatureAnimation::updateMovementList()
 
         _onMovementList = true;
     }
+}
+
+void ArmatureAnimation::playPartEveryBone(Bone* bone, Bone* boneMain, MovementData* movementData, float processScale,
+								int durationTo, int durationTween, int loop, tweenfunc::TweenType tweenEasing)
+{
+	//TODOJK »»³ÉstopPart±£Ö¤Í£Ö¹£¿
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	while (itAnim != _partAnimationList.end())
+	{
+		if (itAnim->first == bone && itAnim->second != nullptr)
+		{
+			itAnim->second->release();
+			itAnim = _partAnimationList.erase(itAnim);
+		}
+		else
+			itAnim++;
+	}
+
+	MovementBoneData* movementBoneData = static_cast<MovementBoneData *>(movementData->movBoneDataDic.at(bone->getName()));
+
+	Tween* tween = bone->getTween();
+	if (movementBoneData && movementBoneData->frameList.size() > 0)
+	{
+		std::map<Tween*, Bone*>::iterator itTween = _partTweenMap.find(tween);
+		if (itTween == _partTweenMap.end())
+			_partTweenMap.insert(std::make_pair(tween, boneMain));
+		else
+			itTween->second = boneMain;
+
+		movementBoneData->duration = movementData->duration;
+		tween->play(movementBoneData, durationTo, durationTween, loop, tweenEasing);
+
+		tween->setProcessScale(processScale);
+
+		if (bone->getChildArmature())
+		{
+			bone->getChildArmature()->getAnimation()->setSpeedScale(processScale);
+		}
+	}
+	else
+	{
+		if (!bone->isIgnoreMovementBoneData())
+		{
+			//! this bone is not include in this movement, so hide it
+			bone->getDisplayManager()->changeDisplayWithIndex(-1, false);
+			tween->stop();
+		}
+	}
+
+	Vector<Node*>& nodeVec = bone->getChildren();
+	Vector<Node*>::iterator iter = nodeVec.begin();
+	for (; iter != nodeVec.end(); iter++)
+	{
+		playPartEveryBone(static_cast<Bone*>(*iter), boneMain, movementData, processScale,
+				durationTo, durationTween, loop, tweenEasing);
+	}
+}
+
+void ArmatureAnimation::onPartEnd(Bone* bone)
+{
+	if (bone == nullptr)
+		return;
+
+	tPartAnimationList::iterator itAnim = _partAnimationList.begin();
+	for (; itAnim != _partAnimationList.end(); itAnim++)
+	{
+		if (itAnim->first == bone)
+			_partGarbageAnims.push_back(itAnim);
+	}
 }
 
 }

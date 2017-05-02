@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "platform/CCCommon.h"
 #include <Shlobj.h>
 #include <cstdlib>
+#include "PxcUtil/zPackEx.h"
 
 using namespace std;
 
@@ -191,16 +192,32 @@ static Data getData(const std::string& filename, bool forString)
         // read the file from hardware
         std::string fullPath = FileUtils::getInstance()->fullPathForFilename(filename);
 
-        // check if the filename uses correct case characters
-        checkFileName(fullPath, filename);
+		zp::IReadFile* pZFile = NULL;
+		HANDLE fileHandle = INVALID_HANDLE_VALUE;
+		if (PxcUtil::zPackFOpen(fullPath.c_str(), &pZFile) == PxcUtil::EzPOpen_SimplePath)
+		{
+			// check if the filename uses correct case characters
+			checkFileName(fullPath, filename);
 
-        WCHAR wszBuf[CC_MAX_PATH] = {0};
-        MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, wszBuf, sizeof(wszBuf)/sizeof(wszBuf[0]));
+			WCHAR wszBuf[CC_MAX_PATH] = { 0 };
+			MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, wszBuf, sizeof(wszBuf) / sizeof(wszBuf[0]));
 
-        HANDLE fileHandle = ::CreateFileW(wszBuf, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
-        CC_BREAK_IF(fileHandle == INVALID_HANDLE_VALUE);
+			fileHandle = ::CreateFileW(wszBuf, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
+			CC_BREAK_IF(fileHandle == INVALID_HANDLE_VALUE);
+		}
+		else
+		{
+			CC_BREAK_IF(!pZFile);
+		}
         
-        size = ::GetFileSize(fileHandle, nullptr);
+		if (pZFile)
+		{
+			size = pZFile->size();
+		}
+		else
+		{
+			size = ::GetFileSize(fileHandle, nullptr);
+		}
 
         if (forString)
         {
@@ -211,10 +228,18 @@ static Data getData(const std::string& filename, bool forString)
         {
             buffer = (unsigned char*) malloc(size);
         }
-        DWORD sizeRead = 0;
         BOOL successed = FALSE;
-        successed = ::ReadFile(fileHandle, buffer, size, &sizeRead, nullptr);
-        ::CloseHandle(fileHandle);
+		if (pZFile)
+		{
+			successed = (pZFile->read(buffer, size) != 0);
+			zPackFClose(pZFile);
+		}
+		else
+		{
+			DWORD sizeRead = 0;
+			successed = ::ReadFile(fileHandle, buffer, size, &sizeRead, nullptr);
+			::CloseHandle(fileHandle);
+		}
 
         if (!successed)
         {
@@ -264,6 +289,7 @@ std::string FileUtilsWin32::getStringFromFile(const std::string& filename)
     
 Data FileUtilsWin32::getDataFromFile(const std::string& filename)
 {
+	CRI_SEC(*_plock)
     return getData(filename, false);
 }
 
@@ -276,22 +302,47 @@ unsigned char* FileUtilsWin32::getFileData(const std::string& filename, const ch
         // read the file from hardware
         std::string fullPath = fullPathForFilename(filename);
 
-         // check if the filename uses correct case characters
-        checkFileName(fullPath, filename);
+		zp::IReadFile* pZFile = NULL;
+		HANDLE fileHandle = INVALID_HANDLE_VALUE;
+		if (PxcUtil::zPackFOpen(fullPath.c_str(), &pZFile) == PxcUtil::EzPOpen_SimplePath)
+		{
+			// check if the filename uses correct case characters
+			checkFileName(fullPath, filename);
 
-        WCHAR wszBuf[CC_MAX_PATH] = {0};
-        MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, wszBuf, sizeof(wszBuf)/sizeof(wszBuf[0]));
+			WCHAR wszBuf[CC_MAX_PATH] = { 0 };
+			MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, wszBuf, sizeof(wszBuf) / sizeof(wszBuf[0]));
 
-        HANDLE fileHandle = ::CreateFileW(wszBuf, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
-        CC_BREAK_IF(fileHandle == INVALID_HANDLE_VALUE);
+			fileHandle = ::CreateFileW(wszBuf, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
+			CC_BREAK_IF(fileHandle == INVALID_HANDLE_VALUE);
+		}
+		else
+		{
+			CC_BREAK_IF(!pZFile);
+		}
         
-        *size = ::GetFileSize(fileHandle, nullptr);
+		if (pZFile)
+		{
+			*size = (ssize_t)pZFile->size();
+		}
+		else
+		{
+			*size = ::GetFileSize(fileHandle, nullptr);
+		}
 
         pBuffer = (unsigned char*) malloc(*size);
-        DWORD sizeRead = 0;
+
         BOOL successed = FALSE;
-        successed = ::ReadFile(fileHandle, pBuffer, *size, &sizeRead, nullptr);
-        ::CloseHandle(fileHandle);
+		if (pZFile)
+		{
+			successed = (pZFile->read(pBuffer, (zp::u32)(*size)) != 0);
+			zPackFClose(pZFile);
+		}
+		else
+		{
+			DWORD sizeRead = 0;
+			successed = ::ReadFile(fileHandle, pBuffer, *size, &sizeRead, nullptr);
+			::CloseHandle(fileHandle);
+		}
 
         if (!successed)
         {

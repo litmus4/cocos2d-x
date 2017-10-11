@@ -114,7 +114,9 @@ public:
     /**
      * Gets all Controller objects.
      */
+	#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
     static const std::vector<Controller*>& getAllController(){ return s_allController;}
+	#endif
 
     /**
      * Gets a Controller object with tag.
@@ -191,10 +193,11 @@ public:
     int getTag() const { return _controllerTag;}
 
 private:
+	Controller();
+	#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
+	virtual ~Controller();
     static std::vector<Controller*> s_allController;
-
-    Controller();
-    virtual ~Controller();
+	#endif
 
     void init();
 

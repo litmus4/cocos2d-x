@@ -76,6 +76,7 @@ bool SpriteFrameCache::init()
 SpriteFrameCache::~SpriteFrameCache()
 {
     CC_SAFE_DELETE(_loadedFileNames);
+	delete _plock;
 }
 
 void SpriteFrameCache::parseIntegerList(const std::string &string, std::vector<int> &res)
@@ -135,7 +136,7 @@ void SpriteFrameCache::initializePolygonInfo(const Size &textureSize,
     info.setRect(Rect(0, 0, spriteSize.width, spriteSize.height));
 }
 
-void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dictionary, Texture2D* texture)
+void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dictionary, Texture2D* texture, Image* ximage)
 {
     /*
     Supported Zwoptex Formats:
@@ -172,7 +173,7 @@ void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dictionary, Textu
     CCASSERT(format >=0 && format <= 3, "format is not supported for SpriteFrameCache addSpriteFramesWithDictionary:textureFilename:");
 
     auto textureFileName = Director::getInstance()->getTextureCache()->getTextureFilePath(texture);
-    Image* image = nullptr;
+    Image* image = ximage;
     NinePatchImageParser parser;
     for (auto& iter : framesDict)
     {
@@ -293,7 +294,8 @@ void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dictionary, Textu
         // add sprite frame
         _spriteFrames.insert(spriteFrameName, spriteFrame);
     }
-    CC_SAFE_DELETE(image);
+	if (ximage == nullptr)
+		CC_SAFE_DELETE(image);
 }
 
 void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dict, const std::string &texturePath)
@@ -350,6 +352,7 @@ void SpriteFrameCache::addSpriteFramesWithDictionary(ValueMap& dict, const std::
 
 void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist, Texture2D *texture)
 {
+	CRI_SEC(*_plock)
     if (_loadedFileNames->find(plist) != _loadedFileNames->end())
     {
         return; // We already added it
@@ -384,6 +387,7 @@ void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist, const s
 
 void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist)
 {
+    CRI_SEC(*_plock)
     CCASSERT(!plist.empty(), "plist filename should not be nullptr");
     
     std::string fullPath = FileUtils::getInstance()->fullPathForFilename(plist);
@@ -433,6 +437,7 @@ void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist)
 
 bool SpriteFrameCache::isSpriteFramesWithFileLoaded(const std::string& plist) const
 {
+	CRI_SEC(*_plock)
     bool result = false;
 
     if (_loadedFileNames->find(plist) != _loadedFileNames->end())
@@ -451,6 +456,7 @@ void SpriteFrameCache::addSpriteFrame(SpriteFrame* frame, const std::string& fra
 
 void SpriteFrameCache::removeSpriteFrames()
 {
+	CRI_SEC(*_plock)
     _spriteFrames.clear();
     _spriteFramesAliases.clear();
     _loadedFileNames->clear();
@@ -458,6 +464,7 @@ void SpriteFrameCache::removeSpriteFrames()
 
 void SpriteFrameCache::removeUnusedSpriteFrames()
 {
+	CRI_SEC(*_plock)
     bool removed = false;
     std::vector<std::string> toRemoveFrames;
     
@@ -485,6 +492,7 @@ void SpriteFrameCache::removeUnusedSpriteFrames()
 
 void SpriteFrameCache::removeSpriteFrameByName(const std::string& name)
 {
+	CRI_SEC(*_plock)
     // explicit nil handling
     if (name.empty())
         return;
@@ -509,6 +517,7 @@ void SpriteFrameCache::removeSpriteFrameByName(const std::string& name)
 
 void SpriteFrameCache::removeSpriteFramesFromFile(const std::string& plist)
 {
+	CRI_SEC(*_plock)
     std::string fullPath = FileUtils::getInstance()->fullPathForFilename(plist);
     ValueMap dict = FileUtils::getInstance()->getValueMapFromFile(fullPath);
     if (dict.empty())
@@ -768,6 +777,13 @@ bool SpriteFrameCache::reloadTexture(const std::string& plist)
         CCLOG("cocos2d: SpriteFrameCache: Couldn't load texture");
     }
     return true;
+}
+
+void SpriteFrameCache::addSpriteFramesDictFile(ValueMap& dict, Texture2D* tex, Image* image, const std::string& plist)
+{
+	CRI_SEC(*_plock)
+	addSpriteFramesWithDictionary(dict, tex, image);
+	_loadedFileNames->insert(plist);
 }
 
 NS_CC_END

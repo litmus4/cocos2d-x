@@ -81,7 +81,7 @@ public:
      *         2  : fade in and out
      *
      */
-    virtual void play(MovementBoneData *movementBoneData, int durationTo, int durationTween,  int loop, int tweenEasing);
+    virtual void play(MovementBoneData *movementBoneData, int durationTo, int durationTween,  int loop, int tweenEasing, float startFrame = -1.0f);
 
     inline void setAnimation(ArmatureAnimation *animation) { _animation = animation; }
     inline ArmatureAnimation *getAnimation() const { return _animation; }
@@ -111,12 +111,12 @@ protected:
     /**
      * According to the percent to calculate current FrameData with tween effect
      */
-    virtual FrameData *tweenNodeTo(float percent, FrameData *node = nullptr);
+    virtual FrameData *tweenNodeTo(float percent, FrameData *node = nullptr, FrameData* between = nullptr);
 
     /**
      * According to the percent to calculate current color with tween effect
      */
-    virtual void tweenColorTo(float percent, FrameData *node);
+    virtual void tweenColorTo(float percent, FrameData *node, FrameData* between);
 
     /**
      * Update display index and process the key frame event when arrived a key frame

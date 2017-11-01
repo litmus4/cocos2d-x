@@ -64,6 +64,8 @@ public:
     void addPlayCallback(const std::function<void()>& callback);
 
     void addLoadCallback(const std::function<void(bool)>& callback);
+    
+	void readData(unsigned int selfId);
 
 protected:
     void setSkipReadDataTask(bool isSkip) { _isSkipReadDataTask = isSkip; };

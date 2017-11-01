@@ -45,6 +45,8 @@ NS_CC_BEGIN
 
 // Implement DictMaker
 
+#include "PxcUtil/zPackEx.h"
+
 #if (CC_TARGET_PLATFORM != CC_PLATFORM_IOS) && (CC_TARGET_PLATFORM != CC_PLATFORM_MAC)
 
 typedef enum
@@ -552,10 +554,12 @@ void FileUtils::setDelegate(FileUtils *delegate)
 FileUtils::FileUtils()
     : _writablePath("")
 {
+	_plock = new PxcUtil::Lock();
 }
 
 FileUtils::~FileUtils()
 {
+	delete _plock;
 }
 
 bool FileUtils::writeStringToFile(const std::string& dataStr, const std::string& fullPath)
@@ -617,6 +621,7 @@ bool FileUtils::init()
 
 void FileUtils::purgeCachedEntries()
 {
+    CRI_SEC(*_plock)
     _fullPathCache.clear();
 }
 
@@ -639,6 +644,7 @@ void FileUtils::getStringFromFile(const std::string &path, std::function<void (s
 
 Data FileUtils::getDataFromFile(const std::string& filename)
 {
+    CRI_SEC(*_plock)
     Data d;
     getContents(filename, &d);
     return d;
@@ -662,26 +668,58 @@ FileUtils::Status FileUtils::getContents(const std::string& filename, ResizableB
     std::string fullPath = fs->fullPathForFilename(filename);
     if (fullPath.empty())
         return Status::NotExists;
-
+    
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+    zp::IReadFile* pZFile = NULL;
+    FILE *fp = NULL;
+    if (PxcUtil::zPackFOpen(fullPath.c_str(), &pZFile) == PxcUtil::EzPOpen_SimplePath)
+    {
+        fp = fopen(fs->getSuitableFOpen(fullPath).c_str(), "rb");
+    }
+    if (!fp && !pZFile)
+        return Status::OpenFailed;
+    
+    size_t size = 0;
+    if (pZFile)
+    {
+        size = pZFile->size();
+    }
+    else
+#else
     FILE *fp = fopen(fs->getSuitableFOpen(fullPath).c_str(), "rb");
     if (!fp)
         return Status::OpenFailed;
-
-#if defined(_MSC_VER)
-    auto descriptor = _fileno(fp);
-#else
-    auto descriptor = fileno(fp);
+    
+    size_t size = 0;
 #endif
-    struct stat statBuf;
-    if (fstat(descriptor, &statBuf) == -1) {
-        fclose(fp);
-        return Status::ReadFailed;
+    {
+#if defined(_MSC_VER)
+        auto descriptor = _fileno(fp);
+#else
+        auto descriptor = fileno(fp);
+#endif
+        struct stat statBuf;
+        if (fstat(descriptor, &statBuf) == -1) {
+            fclose(fp);
+            return Status::ReadFailed;
+        }
+        size = statBuf.st_size;
     }
-    size_t size = statBuf.st_size;
 
     buffer->resize(size);
-    size_t readsize = fread(buffer->buffer(), 1, size, fp);
-    fclose(fp);
+    size_t readsize
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+    if (pZFile)
+    {
+        readsize = pZFile->read(buffer->buffer(), size);
+        zPackFClose(pZFile);
+    }
+    else
+#endif
+    {
+        readsize = fread(buffer->buffer(), 1, size, fp);
+        fclose(fp);
+    }
 
     if (readsize < size) {
         buffer->resize(readsize);
@@ -806,11 +844,18 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
 
 std::string FileUtils::fullPathForFilename(const std::string &filename) const
 {
+	CRI_SEC(*_plock)
     if (filename.empty())
     {
         return "";
     }
 
+	int ipos = filename.find_first_of('#');
+	if (ipos != std::string::npos)
+	{
+		return filename;
+	}
+    
     if (isAbsolutePath(filename))
     {
         return filename;
@@ -859,6 +904,7 @@ std::string FileUtils::fullPathFromRelativeFile(const std::string &filename, con
 
 void FileUtils::setSearchResolutionsOrder(const std::vector<std::string>& searchResolutionsOrder)
 {
+    CRI_SEC(*_plock)
     if (_searchResolutionsOrderArray == searchResolutionsOrder)
     {
         return;
@@ -946,6 +992,7 @@ void FileUtils::setDefaultResourceRootPath(const std::string& path)
 
 void FileUtils::setSearchPaths(const std::vector<std::string>& searchPaths)
 {
+	CRI_SEC(*_plock)
     bool existDefaultRootPath = false;
     _originalSearchPaths = searchPaths;
 
@@ -1011,6 +1058,7 @@ void FileUtils::addSearchPath(const std::string &searchpath,const bool front)
 
 void FileUtils::setFilenameLookupDictionary(const ValueMap& filenameLookupDict)
 {
+	CRI_SEC(*_plock)
     _fullPathCache.clear();
     _filenameLookupDict = filenameLookupDict;
 }
@@ -1053,6 +1101,12 @@ std::string FileUtils::getFullPathForDirectoryAndFilename(const std::string& dir
 
 bool FileUtils::isFileExist(const std::string& filename) const
 {
+	int ipos = filename.find_first_of('#');
+	if (ipos != std::string::npos)
+	{
+		return true;
+	}
+
     if (isAbsolutePath(filename))
     {
         return isFileExistInternal(filename);
@@ -1082,6 +1136,7 @@ bool FileUtils::isAbsolutePath(const std::string& path) const
 
 bool FileUtils::isDirectoryExist(const std::string& dirPath) const
 {
+	CRI_SEC(*_plock)
     CCASSERT(!dirPath.empty(), "Invalid path");
 
     if (isAbsolutePath(dirPath))

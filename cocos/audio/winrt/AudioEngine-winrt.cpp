@@ -48,7 +48,7 @@ bool AudioEngineImpl::init()
     return true;
 }
 
-AudioCache* AudioEngineImpl::preload(const std::string& filePath, std::function<void(bool)> callback)
+AudioCache* AudioEngineImpl::preload(const std::string& filePath, std::function<void(bool)> callback, bool sync)
 {
     AudioCache* audioCache = nullptr;
     do 
@@ -82,7 +82,12 @@ AudioCache* AudioEngineImpl::preload(const std::string& filePath, std::function<
 
             std::string fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
             audioCache->_fileFullPath = fullPath;
-            AudioEngine::addTask(std::bind(&AudioCache::readDataTask, audioCache));
+            if (sync) {
+				audioCache->readDataTask();
+			}
+			else {
+                AudioEngine::addTask(std::bind(&AudioCache::readDataTask, audioCache));
+            }
         }
         else 
         {

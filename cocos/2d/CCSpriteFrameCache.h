@@ -37,6 +37,8 @@ THE SOFTWARE.
 #include "base/CCValue.h"
 #include "base/CCMap.h"
 
+#include "PxcUtil/Scattered.h"
+
 NS_CC_BEGIN
 
 class Sprite;
@@ -239,18 +241,20 @@ public:
 
     bool reloadTexture(const std::string& plist);
 
+	void addSpriteFramesDictFile(ValueMap& dict, Texture2D* tex, Image* image, const std::string& plist);
+
 protected:
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful
-    SpriteFrameCache(){}
+	SpriteFrameCache(){ _plock = new PxcUtil::Lock(); }
 
     /*Adds multiple Sprite Frames with a dictionary. The texture will be associated with the created sprite frames.
      */
-    void addSpriteFramesWithDictionary(ValueMap& dictionary, Texture2D *texture);
+    void addSpriteFramesWithDictionary(ValueMap& dictionary, Texture2D *texture, Image* ximage = nullptr);
     
     /*Adds multiple Sprite Frames with a dictionary. The texture will be associated with the created sprite frames.
      */
     void addSpriteFramesWithDictionary(ValueMap& dictionary, const std::string &texturePath);
-    
+
     /** Removes multiple Sprite Frames from Dictionary.
     * @since v0.99.5
     */
@@ -272,6 +276,8 @@ protected:
     Map<std::string, SpriteFrame*> _spriteFrames;
     ValueMap _spriteFramesAliases;
     std::set<std::string>*  _loadedFileNames;
+
+	PxcUtil::Lock* _plock;
 };
 
 // end of _2d group

@@ -46,6 +46,7 @@ class Armature;
 class Bone;
 
 typedef void (cocos2d::Ref::*SEL_MovementEventCallFunc)(Armature *, MovementEventType, const std::string&);
+typedef void (cocos2d::Ref::*SEL_PartMovementEventCallFunc)(Armature*, const std::string&, MovementEventType, const std::string&);
 typedef void (cocos2d::Ref::*SEL_FrameEventCallFunc)(Bone *, const std::string&, int, int);
 
 #define movementEvent_selector(_SELECTOR) (cocostudio::SEL_MovementEventCallFunc)(&_SELECTOR)
@@ -64,6 +65,7 @@ struct MovementEvent
     Armature *armature;
     MovementEventType movementType;
     std::string movementID;
+	std::string partBoneName;
 };
 
 class  CC_STUDIO_DLL ArmatureAnimation : public ProcessBase
@@ -126,6 +128,9 @@ public:
      */
     virtual void play(const std::string& animationName, int durationTo = -1,  int loop = -1);
 
+	virtual void playPart(const std::string& animationName, const std::string& boneName, int durationTo = -1, int loop = -1,
+					float startFrame = 0.0f, float speedScale = 1.0f);
+
     /**
      * Play animation by index, the other param is the same to play.
      * @deprecated, please use playWithIndex
@@ -158,14 +163,17 @@ public:
      * Pause the Process
      */
     virtual void pause() override;
+	void pausePart(const std::string& boneName);
     /**
      * Resume the Process
      */
     virtual void resume() override;
+	void resumePart(const std::string& boneName);
     /**
      * Stop the Process
      */
     virtual void stop() override;
+	void stopPart(const std::string& boneName);
 
 
     /**
@@ -186,6 +194,9 @@ public:
      * To disconnect this event, just setMovementEventCallFunc(nullptr, nullptr);
      */
     CC_DEPRECATED_ATTRIBUTE void setMovementEventCallFunc(cocos2d::Ref *target, SEL_MovementEventCallFunc callFunc);
+	CC_DEPRECATED_ATTRIBUTE void setPartMovementEventCallFunc(cocos2d::Ref* target, SEL_PartMovementEventCallFunc callFunc);
+
+	void registerPartEventType(MovementEventType movementType);
 
     /**
      * Set armature's frame event callback function
@@ -207,6 +218,8 @@ public:
     }
     virtual AnimationData *getAnimationData() const { return _animationData; }
 
+	//in part
+	std::string getPartBoneName();
 
     /** 
      * Returns a user assigned Object
@@ -262,15 +275,24 @@ protected:
      * Emit a movement event
      */
     void movementEvent(Armature *armature, MovementEventType movementType, const std::string& movementID);
+	void partMovementEvent(Armature* armature, const std::string& boneName, MovementEventType movementType, const std::string& movementID);
 
     void updateMovementList();
 
     bool isIgnoreFrameEvent() const { return _ignoreFrameEvent; }
 
+	void playPartEveryBone(Bone* bone, Bone* boneMain, MovementData* movementData, float processScale,
+				int durationTo, int durationTween, int loop, cocos2d::tweenfunc::TweenType tweenEasing, float startFrame);
+
+	void onPartEnd(Bone* bone);
+
     friend class Tween;
 protected:
     //! AnimationData save all MovementDatas this animation used.
     AnimationData *_animationData;
+
+	typedef std::list<std::pair<Bone*, ArmatureAnimation*>> tPartAnimationList;
+	tPartAnimationList _partAnimationList;
 
     //! Scale the animation speed
     float _speedScale;
@@ -284,11 +306,13 @@ protected:
     int _toIndex;                                //! The frame index in MovementData->m_pMovFrameDataArr, it's different from m_iFrameIndex.
 
     std::vector<Tween*> _tweenList;
+	std::map<Tween*, Bone*> _partTweenMap;
 
     bool _ignoreFrameEvent;
     
     std::queue<FrameEvent*> _frameEventQueue;
     std::queue<MovementEvent*> _movementEventQueue;
+	MovementEventType _partRegEventType;
 
     std::vector<std::string> _movementList;
     
@@ -296,6 +320,11 @@ protected:
     bool _movementListLoop;
     unsigned int _movementIndex;
     int _movementListDurationTo;
+
+	std::vector<tPartAnimationList::iterator> _partGarbageAnims;
+
+	Bone* _partBoneMain;//in part
+	ArmatureAnimation* _partWholeAnim;//in part
 
     cocos2d::Ref *_userObject;
 protected:
@@ -306,6 +335,7 @@ protected:
      * @param const char*, Movement ID, also called Movement Name
      */
     SEL_MovementEventCallFunc _movementEventCallFunc;
+	SEL_PartMovementEventCallFunc _partMovementEventCallFunc;
 
     /**
      * FrameEvent CallFunc.

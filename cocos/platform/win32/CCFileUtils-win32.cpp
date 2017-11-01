@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <cstdlib>
 #include <regex>
 #include <sstream>
+#include "PxcUtil/zPackEx.h"
 
 using namespace std;
 
@@ -172,31 +173,58 @@ FileUtils::Status FileUtilsWin32::getContents(const std::string& filename, Resiz
     // read the file from hardware
     std::string fullPath = FileUtils::getInstance()->fullPathForFilename(filename);
 
-    HANDLE fileHandle = ::CreateFile(StringUtf8ToWideChar(fullPath).c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
-    if (fileHandle == INVALID_HANDLE_VALUE)
-        return FileUtils::Status::OpenFailed;
-
-	DWORD hi;
-    auto size = ::GetFileSize(fileHandle, &hi);
-	if (hi > 0)
-	{
-		::CloseHandle(fileHandle);
-		return FileUtils::Status::TooLarge;
-	}
-    // don't read file content if it is empty
-    if (size == 0)
+    zp::IReadFile* pZFile = NULL;
+    HANDLE fileHandle = INVALID_HANDLE_VALUE;
+    if (PxcUtil::zPackFOpen(fullPath.c_str(), &pZFile) == PxcUtil::EzPOpen_SimplePath)
     {
-        ::CloseHandle(fileHandle);
-        return FileUtils::Status::OK;
+        HANDLE fileHandle = ::CreateFile(StringUtf8ToWideChar(fullPath).c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, nullptr);
+        if (fileHandle == INVALID_HANDLE_VALUE)
+            return FileUtils::Status::OpenFailed;
+    }
+    else if (!pZFile)
+    {
+        return FileUtils::Status::OpenFailed;
+    }
+
+    size_t size = 0;
+    if (pZFile)
+    {
+        size = pZFile->size();
+    }
+    else
+    {
+        DWORD hi;
+        size = ::GetFileSize(fileHandle, &hi);
+        if (hi > 0)
+        {
+            ::CloseHandle(fileHandle);
+            return FileUtils::Status::TooLarge;
+        }
+        // don't read file content if it is empty
+        if (size == 0)
+        {
+            ::CloseHandle(fileHandle);
+            return FileUtils::Status::OK;
+        }
     }
 
     buffer->resize(size);
+    BOOL successed = FALSE;
     DWORD sizeRead = 0;
-    BOOL successed = ::ReadFile(fileHandle, buffer->buffer(), size, &sizeRead, nullptr);
-    ::CloseHandle(fileHandle);
+    if (pZFile)
+    {
+        sizeRead = pZFile->read(buffer->buffer(), size)
+        successed = (sizeRead != 0);
+        zPackFClose(pZFile);
+    }
+    else
+    {
+        successed = ::ReadFile(fileHandle, buffer->buffer(), size, &sizeRead, nullptr);
+        ::CloseHandle(fileHandle);
+    }
 
     if (!successed) {
-		CCLOG("Get data from file(%s) failed, error code is %s", filename.data(), std::to_string(::GetLastError()).data());
+		CCLOG("Get data from file(%s) failed, error code is %s", filename.data(), pZFile ? "-1" : std::to_string(::GetLastError()).data());
 		buffer->resize(sizeRead);
 		return FileUtils::Status::ReadFailed;
     }

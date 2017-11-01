@@ -376,4 +376,9 @@ void AudioCache::invokingLoadCallbacks()
     });
 }
 
+void AudioCache::readData(unsigned int selfId)
+{
+	readDataTask(selfId);
+}
+
 #endif

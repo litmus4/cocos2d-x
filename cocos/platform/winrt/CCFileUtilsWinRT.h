@@ -74,6 +74,8 @@ public:
     virtual void listFilesRecursively(const std::string& dirPath, std::vector<std::string> *files) const;
 
 private:
+    FileUtils::Status getContents2(const std::string& fullPath, ResizableBuffer* buffer)
+
     virtual bool isFileExistInternal(const std::string& strFilePath) const override;
 
     /**

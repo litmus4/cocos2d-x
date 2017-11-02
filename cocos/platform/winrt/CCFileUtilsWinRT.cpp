@@ -153,7 +153,7 @@ FileUtils::Status CCFileUtilsWinRT::getContents(const std::string& filename, Res
 
     HANDLE fileHandle = ::CreateFile2(StringUtf8ToWideChar(fullPath).c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING, nullptr);
     if (fileHandle == INVALID_HANDLE_VALUE)
-        return FileUtils::Status::OpenFailed;
+        return getContents2(fullPath, buffer);
 
     FILE_STANDARD_INFO info = {0};
     if (::GetFileInformationByHandleEx(fileHandle, FileStandardInfo, &info, sizeof(info)) == 0)
@@ -177,6 +177,29 @@ FileUtils::Status CCFileUtilsWinRT::getContents(const std::string& filename, Res
     {
         buffer->resize(sizeRead);
         CCLOG("Get data from file(%s) failed, error code is %s", filename.data(), std::to_string(::GetLastError()).data());
+        return FileUtils::Status::ReadFailed;
+    }
+    return FileUtils::Status::OK;
+}
+
+FileUtils::Status CCFileUtilsWinRT::getContents2(const std::string& fullPath, ResizableBuffer* buffer)
+{
+    FILE *fp = fopen(fullPath.c_str(), mode);
+    if (!fp)
+        return FileUtils::Status::OpenFailed;
+    
+    fseek(fp,0,SEEK_END);
+    ssize_t size = ftell(fp);
+    fseek(fp,0,SEEK_SET);
+
+    buffer->resize(size);
+    ssize_t readsize = fread(buffer->buffer(), 1, size, fp);
+    fclose(fp);
+
+    if (readsize < size)
+    {
+        buffer->resize(readsize);
+        CCLOG("Get data from file(%s) failed, using fopen", fullPath.data());
         return FileUtils::Status::ReadFailed;
     }
     return FileUtils::Status::OK;

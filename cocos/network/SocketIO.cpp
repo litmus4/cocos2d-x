@@ -151,7 +151,7 @@ std::string SocketIOPacket::toString()const
     encoded << this->_separator;
 
     // Add the endpoint for the namespace to be used if not the default namespace "" or "/", and as long as it is not an ACK, heartbeat, or disconnect packet
-    if (_endpoint != "/" && _endpoint != "" && _type != "ack" && _type != "heartbeat" && _type != "disconnect") {
+    if (_endpoint != "/" && !_endpoint.empty() && _type != "ack" && _type != "heartbeat" && _type != "disconnect") {
         encoded << _endpoint << _endpointseparator;
     }
     encoded << this->_separator;
@@ -441,8 +441,6 @@ void SIOClientImpl::handshake()
     HttpClient::getInstance()->send(request);
 
     request->release();
-
-    return;
 }
 
 void SIOClientImpl::handshakeResponse(HttpClient* /*sender*/, HttpResponse *response)
@@ -562,9 +560,6 @@ void SIOClientImpl::handshakeResponse(HttpClient* /*sender*/, HttpResponse *resp
     _timeout = timeout;
 
     openSocket();
-
-    return;
-
 }
 
 void SIOClientImpl::openSocket()
@@ -593,8 +588,6 @@ void SIOClientImpl::openSocket()
     {
         CC_SAFE_DELETE(_ws);
     }
-
-    return;
 }
 
 bool SIOClientImpl::init()
@@ -727,7 +720,7 @@ void SIOClientImpl::send(SocketIOPacket *packet)
     if (_connected)
     {
         CCLOGINFO("-->SEND:%s", req.data());
-        _ws->send(req.data());
+        _ws->send(req);
     }
     else
         CCLOGINFO("Cant send the message (%s) because disconnected", req.c_str());
@@ -764,7 +757,7 @@ void SIOClientImpl::onOpen(WebSocket* /*ws*/)
     if (_version == SocketIOPacket::SocketIOVersion::V10x)
     {
         std::string s = "5";//That's a ping https://github.com/Automattic/engine.io-parser/blob/1b8e077b2218f4947a69f5ad18be2a512ed54e93/lib/index.js#L21
-        _ws->send(s.data());
+        _ws->send(s);
     }
 
     Director::getInstance()->getScheduler()->schedule(CC_SCHEDULE_SELECTOR(SIOClientImpl::heartbeat), this, (_heartbeat * .9f), false);
@@ -819,7 +812,7 @@ void SIOClientImpl::onMessage(WebSocket* /*ws*/, const WebSocket::Data& data)
                 endpoint = payload;
             }
 
-            if (endpoint == "") endpoint = "/";
+            if (endpoint.empty()) endpoint = "/";
 
             c = getClient(endpoint);
 
@@ -934,14 +927,14 @@ void SIOClientImpl::onMessage(WebSocket* /*ws*/, const WebSocket::Data& data)
                 }
 
                 // we didn't find and endpoint and we are in the default namespace
-                if (endpoint == "") endpoint = "/";
+                if (endpoint.empty()) endpoint = "/";
 
                 c = getClient(endpoint);
 
                 payload = payload.substr(1);
 
                 if (endpoint != "/") payload = payload.substr(endpoint.size());
-                if (endpoint != "/" && payload != "") payload = payload.substr(1);
+                if (endpoint != "/" && !payload.empty()) payload = payload.substr(1);
 
                 switch (control2)
                 {
@@ -1004,8 +997,6 @@ void SIOClientImpl::onMessage(WebSocket* /*ws*/, const WebSocket::Data& data)
         }
         break;
     }
-
-    return;
 }
 
 void SIOClientImpl::onClose(WebSocket* /*ws*/)
@@ -1208,7 +1199,7 @@ SIOClient* SocketIO::connect(const std::string& uri, SocketIO::SIODelegate& dele
     SIOClient *c = nullptr;
 
     std::string path = uriObj.getPath();
-    if (path == "")
+    if (path.empty())
         path = "/";
 
     if (socket == nullptr)

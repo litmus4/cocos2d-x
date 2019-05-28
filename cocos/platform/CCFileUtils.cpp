@@ -547,8 +547,7 @@ void FileUtils::destroyInstance()
 
 void FileUtils::setDelegate(FileUtils *delegate)
 {
-    if (s_sharedFileUtils)
-        delete s_sharedFileUtils;
+    delete s_sharedFileUtils;
 
     s_sharedFileUtils = delegate;
 }
@@ -898,7 +897,7 @@ std::string FileUtils::fullPathForDirectory(const std::string &dir) const
     {
         for (const auto& resolutionIt : _searchResolutionsOrderArray)
         {
-            fullpath.append(searchIt).append(longdir).append(resolutionIt);
+            fullpath.assign(searchIt).append(longdir).append(resolutionIt);
             auto exists = isDirectoryExistInternal(fullpath);
 
             if (exists && !fullpath.empty())
@@ -941,7 +940,7 @@ void FileUtils::setSearchResolutionsOrder(const std::vector<std::string>& search
     for(const auto& iter : searchResolutionsOrder)
     {
         std::string resolutionDirectory = iter;
-        if (!existDefault && resolutionDirectory == "")
+        if (!existDefault && resolutionDirectory.empty())
         {
             existDefault = true;
         }
@@ -1116,7 +1115,7 @@ std::string FileUtils::getFullPathForFilenameWithinDirectory(const std::string& 
 {
     // get directory+filename, safely adding '/' as necessary
     std::string ret = directory;
-    if (directory.size() && directory[directory.size()-1] != '/'){
+    if (!directory.empty() && directory[directory.size()-1] != '/'){
         ret += '/';
     }
     ret += filename;
@@ -1518,7 +1517,7 @@ std::vector<std::string> FileUtils::listFiles(const std::string& dirPath) const
 {
     std::vector<std::string> files;
     std::string fullpath = fullPathForDirectory(dirPath);
-    if (isDirectoryExist(fullpath))
+    if (!fullpath.empty() && isDirectoryExist(fullpath))
     {
         tinydir_dir dir;
         std::string fullpathstr = fullpath;

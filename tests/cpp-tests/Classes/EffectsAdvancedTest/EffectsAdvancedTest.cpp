@@ -282,7 +282,7 @@ void Issue631::onEnter()
     auto layer2 = LayerColor::create(Color4B( 0, 255,0,255 ) );
     auto fog = Sprite::create("Images/Fog.png");
 
-    BlendFunc bf = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+    BlendFunc bf = {backend::BlendFactor::SRC_ALPHA, backend::BlendFactor::ONE_MINUS_SRC_ALPHA};
     fog->setBlendFunc(bf);
     layer2->addChild(fog, 1);
     addChild(layer2BaseGrid, 1);
@@ -307,7 +307,7 @@ std::string Issue631::subtitle() const
 //
 //------------------------------------------------------------------
 
-void EffectAdvanceBaseTest::onEnter(void)
+void EffectAdvanceBaseTest::onEnter()
 {
     TestCase::onEnter();
     
@@ -344,7 +344,7 @@ void EffectAdvanceBaseTest::onEnter(void)
 
 }
 
-EffectAdvanceBaseTest::~EffectAdvanceBaseTest(void)
+EffectAdvanceBaseTest::~EffectAdvanceBaseTest()
 {
 }
 

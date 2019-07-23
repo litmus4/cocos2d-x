@@ -190,6 +190,7 @@ protected:
     RendererBatchQuadTri();
 };
 
+
 class RendererUniformBatch : public MultiSceneTest
 {
 public:
@@ -199,8 +200,8 @@ public:
 protected:
     RendererUniformBatch();
 
-    cocos2d::GLProgramState* createBlurGLProgramState();
-    cocos2d::GLProgramState* createSepiaGLProgramState();
+    cocos2d::backend::ProgramState* createBlurProgramState();
+    cocos2d::backend::ProgramState* createSepiaProgramState();
 };
 
 class RendererUniformBatch2 : public MultiSceneTest
@@ -212,8 +213,20 @@ public:
 protected:
     RendererUniformBatch2();
 
-    cocos2d::GLProgramState* createBlurGLProgramState();
-    cocos2d::GLProgramState* createSepiaGLProgramState();
+    cocos2d::backend::ProgramState* createBlurProgramState();
+    cocos2d::backend::ProgramState* createSepiaProgramState();
+};
+
+class NonBatchSprites : public MultiSceneTest
+{
+public:
+    CREATE_FUNC(NonBatchSprites);
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+protected:
+    NonBatchSprites();
+    virtual ~NonBatchSprites();
 };
 
 #endif //__NewRendererTest_H_

@@ -1075,12 +1075,12 @@ ParticleTests::ParticleTests()
     ADD_TEST_CASE(ParticleSpriteFrame);
 }
 
-ParticleDemo::~ParticleDemo(void)
+ParticleDemo::~ParticleDemo()
 {
     CC_SAFE_RELEASE(_emitter);
 }
 
-void ParticleDemo::onEnter(void)
+void ParticleDemo::onEnter()
 {
     TestCase::onEnter();
 
@@ -1864,7 +1864,7 @@ void PremultipliedAlphaTest::onEnter()
     _emitter = ParticleSystemQuad::create("Particles/BoilingFoam.plist");
     _emitter->retain();
     // Particle Designer "normal" blend func causes black halo on premul textures (ignores multiplication)
-    //this->emitter.blendFunc = (BlendFunc){ GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA };
+    //this->emitter.blendFunc = (BlendFunc){ BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA };
 
     // Cocos2d "normal" blend func for premul causes alpha to be ignored (oversaturates colors)
     _emitter->setBlendFunc( BlendFunc::ALPHA_PREMULTIPLIED );

@@ -25,14 +25,12 @@
  * THE SOFTWARE.
  *
  */
-
-#ifndef __MISCNODE_CCCLIPPING_NODE_H__
-#define __MISCNODE_CCCLIPPING_NODE_H__
+#pragma once
 
 #include "2d/CCNode.h"
-#include "platform/CCGL.h"
 #include "renderer/CCGroupCommand.h"
 #include "renderer/CCCustomCommand.h"
+#include "renderer/CCCallbackCommand.h"
 
 NS_CC_BEGIN
 
@@ -94,13 +92,13 @@ public:
      *
      * @return The alpha threshold value,Should be a float between 0 and 1.
      */
-    GLfloat getAlphaThreshold() const;
+    float getAlphaThreshold() const;
     
     /** Set the alpha threshold. 
      * 
      * @param alphaThreshold The alpha threshold.
      */
-    void setAlphaThreshold(GLfloat alphaThreshold);
+    void setAlphaThreshold(float alphaThreshold);
     
     /** Inverted. If this is set to true,
      * the stencil is inverted, so the content is drawn where the stencil is NOT drawn.
@@ -156,20 +154,17 @@ CC_CONSTRUCTOR_ACCESS:
     virtual bool init(Node *stencil);
 
 protected:
-    Node* _stencil;
-    GLProgram* _originStencilProgram;
-   
-    StencilStateManager* _stencilStateManager;
+    Node* _stencil                              = nullptr;
+    StencilStateManager* _stencilStateManager   = nullptr;
     
-    GroupCommand _groupCommand;
-    CustomCommand _beforeVisitCmd;
-    CustomCommand _afterDrawStencilCmd;
-    CustomCommand _afterVisitCmd;
+    GroupCommand _groupCommandStencil;
+    GroupCommand _groupCommandChildren;
+    CallbackCommand _afterDrawStencilCmd;
+    CallbackCommand _afterVisitCmd;
+    backend::ProgramState* _originalStencilProgramState = nullptr;
 
 private:
     CC_DISALLOW_COPY_AND_ASSIGN(ClippingNode);
 };
 /** @} */
 NS_CC_END
-
-#endif // __MISCNODE_CCCLIPPING_NODE_H__

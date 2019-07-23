@@ -24,8 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __CC_EGLViewIMPL_DESKTOP_H__
-#define __CC_EGLViewIMPL_DESKTOP_H__
+#pragma once
 
 #include "base/CCRef.h"
 #include "platform/CCCommon.h"
@@ -126,17 +125,18 @@ public:
     
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
     id getCocoaWindow() override { return glfwGetCocoaWindow(_mainWindow); }
+    id getNSGLContext() override { return glfwGetNSGLContext(_mainWindow); } // stevetranby: added
 #endif // #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
 protected:
     GLViewImpl(bool initglfw = true);
     virtual ~GLViewImpl();
 
+    bool initGlew();
+
     bool initWithRect(const std::string& viewName, Rect rect, float frameZoomFactor, bool resizable);
     bool initWithFullScreen(const std::string& viewName);
     bool initWithFullscreen(const std::string& viewname, const GLFWvidmode &videoMode, GLFWmonitor *monitor);
-
-    bool initGlew();
 
     void updateFrameSize();
 
@@ -227,16 +227,17 @@ public:
             _view->onGLFWWindowPosCallback(windows, x, y);
     }
 
-    static void onGLFWframebuffersize(GLFWwindow* window, int w, int h)
-    {
-        if (_view)
-            _view->onGLFWframebuffersize(window, w, h);
-    }
-
     static void onGLFWWindowSizeFunCallback(GLFWwindow *window, int width, int height)
     {
         if (_view)
             _view->onGLFWWindowSizeFunCallback(window, width, height);
+    }
+
+
+    static void onGLFWframebuffersize(GLFWwindow *window, int width, int height)
+    {
+        if (_view)
+            _view->onGLFWframebuffersize(window, width, height);
     }
 
     static void setGLViewImpl(GLViewImpl* view)
@@ -260,10 +261,9 @@ public:
         }
     }
 
+
 private:
     static GLViewImpl* _view;
 };
 
 NS_CC_END   // end of namespace   cocos2d
-
-#endif  // end of __CC_EGLViewImpl_DESKTOP_H__

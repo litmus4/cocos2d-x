@@ -564,13 +564,13 @@ void CameraOrbitTest::onEnter()
 {
     TestCocosNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
-    Director::getInstance()->setDepthTest(true);
+    Director::getInstance()->getRenderer()->setDepthTest(true);
     Director::getInstance()->setProjection(Director::Projection::_3D);
 }
 
 void CameraOrbitTest::onExit()
 {
-    Director::getInstance()->setDepthTest(false);
+    Director::getInstance()->getRenderer()->setDepthTest(false);
     Director::getInstance()->setProjection(_preProjection);
     TestCocosNodeDemo::onExit();
 }
@@ -969,8 +969,8 @@ public:
         sprite->initWithFile(spritefilename);
         sprite->autorelease();
 
-        auto shaderState = GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR);
-        sprite->setGLProgramState(shaderState);
+//        auto shaderState = GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR);
+//        sprite->setGLProgramState(shaderState);
         return sprite;
     }
     virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
@@ -990,36 +990,37 @@ void MySprite::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
 
 void MySprite::onDraw(const Mat4 &transform, uint32_t flags)
 {
-    getGLProgram()->use();
-    getGLProgram()->setUniformsForBuiltins(transform);
+//    getGLProgram()->use();
+//    getGLProgram()->setUniformsForBuiltins(transform);
 
-    cocos2d::utils::setBlending(_blendFunc.src, _blendFunc.dst);
+//    cocos2d::utils::setBlending(_blendFunc.src, _blendFunc.dst);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _texture->getName());
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _texture->getName());
     
-    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_POSITION);
-    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_TEX_COORD);
-    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_COLOR);
+//    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_POSITION);
+//    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_TEX_COORD);
+//    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_COLOR);
 
     #define kQuadSize sizeof(_quad.bl)
-    size_t offset = (size_t)&_quad;
+//    size_t offset = (size_t)&_quad;
 
     // vertex
     int diff = offsetof( V3F_C4B_T2F, vertices);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, kQuadSize, (void*) (offset + diff));
+//    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, kQuadSize, (void*) (offset + diff));
 
     // texCoords
     diff = offsetof( V3F_C4B_T2F, texCoords);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORD, 2, GL_FLOAT, GL_FALSE, kQuadSize, (void*)(offset + diff));
+//    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORD, 2, GL_FLOAT, GL_FALSE, kQuadSize, (void*)(offset + diff));
 
     // color
     diff = offsetof( V3F_C4B_T2F, colors);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
+//    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    CHECK_GL_ERROR_DEBUG();
+    //TODO coulsonwang
+//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//
+//    CHECK_GL_ERROR_DEBUG();
     CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1,4);
 }
 //------------------------------------------------------------------
@@ -1033,13 +1034,13 @@ void CameraTest1::onEnter()
     TestCocosNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
-    Director::getInstance()->setDepthTest(true);
+    Director::getInstance()->getRenderer()->setDepthTest(true);
 }
 
 void CameraTest1::onExit()
 {
     Director::getInstance()->setProjection(_preProjection);
-    Director::getInstance()->setDepthTest(false);
+    Director::getInstance()->getRenderer()->setDepthTest(false);
     TestCocosNodeDemo::onExit();
 }
 
@@ -1082,13 +1083,13 @@ void CameraTest2::onEnter()
     TestCocosNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
-    Director::getInstance()->setDepthTest(true);
+    Director::getInstance()->getRenderer()->setDepthTest(true);
 }
 
 void CameraTest2::onExit()
 {
     Director::getInstance()->setProjection(_preProjection);
-    Director::getInstance()->setDepthTest(false);
+    Director::getInstance()->getRenderer()->setDepthTest(false);
     TestCocosNodeDemo::onExit();
 }
 

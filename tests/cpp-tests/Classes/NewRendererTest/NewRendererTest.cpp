@@ -31,7 +31,7 @@ NewRendererTests::NewRendererTests()
 {
     ADD_TEST_CASE(NewSpriteTest);
     ADD_TEST_CASE(GroupCommandTest);
-    ADD_TEST_CASE(NewClippingNodeTest);
+//    ADD_TEST_CASE(NewClippingNodeTest); // When depth and stencil are used together, ...
     ADD_TEST_CASE(NewDrawNodeTest);
     ADD_TEST_CASE(NewCullingTest);
     ADD_TEST_CASE(VBOFullTest);
@@ -39,8 +39,9 @@ NewRendererTests::NewRendererTests()
     ADD_TEST_CASE(CaptureNodeTest);
     ADD_TEST_CASE(BugAutoCulling);
     ADD_TEST_CASE(RendererBatchQuadTri);
-    ADD_TEST_CASE(RendererUniformBatch);
+    ADD_TEST_CASE(RendererUniformBatch); 
     ADD_TEST_CASE(RendererUniformBatch2);
+    ADD_TEST_CASE(NonBatchSprites);
 };
 
 std::string MultiSceneTest::title() const
@@ -538,19 +539,22 @@ void CaptureNodeTest::onCaptured(Ref*)
     _filename = FileUtils::getInstance()->getWritablePath() + "/CaptureNodeTest.png";
 
     // capture this
-    auto image = utils::captureNode(this, 0.5);
-
-    // create a sprite with the captured image directly
-    auto sp = Sprite::createWithTexture(Director::getInstance()->getTextureCache()->addImage(image, _filename));
-    addChild(sp, 0, childTag);
-    Size s = Director::getInstance()->getWinSize();
-    sp->setPosition(s.width / 2, s.height / 2);
-
-    // store to disk
-    image->saveToFile(_filename);
-
-    // release the captured image
-    image->release();
+    auto callback = [&](Image* image){
+        // create a sprite with the captured image directly
+        auto sp = Sprite::createWithTexture(Director::getInstance()->getTextureCache()->addImage(image, _filename));
+        addChild(sp, 0, childTag);
+        Size s = Director::getInstance()->getWinSize();
+        sp->setPosition(s.width / 2, s.height / 2);
+        
+        // store to disk
+        image->saveToFile(_filename);
+        
+        // release the captured image
+        image->release();
+    };
+    
+    auto callbackFunction = std::bind(callback, std::placeholders::_1);
+    utils::captureNode(this, callbackFunction, 0.5);
 }
 
 BugAutoCulling::BugAutoCulling()
@@ -629,8 +633,8 @@ RendererUniformBatch::RendererUniformBatch()
 {
     Size s = Director::getInstance()->getWinSize();
 
-    auto glBlurState = createBlurGLProgramState();
-    auto glSepiaState = createSepiaGLProgramState();
+    auto blurState = createBlurProgramState();
+    auto sepiaState = createSepiaProgramState();
 
     auto x_inc = s.width / 20;
     auto y_inc = s.height / 6;
@@ -645,38 +649,41 @@ RendererUniformBatch::RendererUniformBatch()
             addChild(sprite);
 
             if (y>=4) {
-                sprite->setGLProgramState(glSepiaState);
+                sprite->setProgramState(sepiaState);
             } else if(y>=2) {
-                sprite->setGLProgramState(glBlurState);
+                sprite->setProgramState(blurState);
             }
         }
     }
 }
 
-GLProgramState* RendererUniformBatch::createBlurGLProgramState()
+cocos2d::backend::ProgramState* RendererUniformBatch::createBlurProgramState()
 {
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
     const std::string shaderName("Shaders/example_Blur.fsh");
-#else
-    const std::string shaderName("Shaders/example_Blur_winrt.fsh");
-#endif
     // outline shader
     auto fileUtiles = FileUtils::getInstance();
     auto fragmentFullPath = fileUtiles->fullPathForFilename(shaderName);
     auto fragSource = fileUtiles->getStringFromFile(fragmentFullPath);
-    auto glprogram = GLProgram::createWithByteArrays(ccPositionTextureColor_noMVP_vert, fragSource.c_str());
-    auto glprogramstate = (glprogram == nullptr ? nullptr : GLProgramState::getOrCreateWithGLProgram(glprogram));
+    auto programState = new backend::ProgramState(positionTextureColor_vert, fragSource.c_str());
 
-    glprogramstate->setUniformVec2("resolution", Vec2(85,121));
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
-    glprogramstate->setUniformFloat("blurRadius", 10);
-    glprogramstate->setUniformFloat("sampleNum", 5);
-#endif
 
-    return glprogramstate;
+
+    backend::UniformLocation loc = programState->getUniformLocation("resolution");
+    auto resolution = Vec2(85, 121);
+    programState->setUniform(loc, &resolution, sizeof(resolution));
+
+    loc = programState->getUniformLocation("blurRadius");
+    float blurRadius = 10.0f;
+    programState->setUniform(loc, &blurRadius, sizeof(blurRadius));
+
+    loc = programState->getUniformLocation("sampleNum");
+    float sampleNum = 5.0f;
+    programState->setUniform(loc, &sampleNum, sizeof(sampleNum));
+
+    return programState;
 }
 
-GLProgramState* RendererUniformBatch::createSepiaGLProgramState()
+cocos2d::backend::ProgramState* RendererUniformBatch::createSepiaProgramState()
 {
     const std::string shaderName("Shaders/example_Sepia.fsh");
 
@@ -684,10 +691,9 @@ GLProgramState* RendererUniformBatch::createSepiaGLProgramState()
     auto fileUtiles = FileUtils::getInstance();
     auto fragmentFullPath = fileUtiles->fullPathForFilename(shaderName);
     auto fragSource = fileUtiles->getStringFromFile(fragmentFullPath);
-    auto glprogram = GLProgram::createWithByteArrays(ccPositionTextureColor_noMVP_vert, fragSource.c_str());
-    auto glprogramstate = (glprogram == nullptr ? nullptr : GLProgramState::getOrCreateWithGLProgram(glprogram));
-
-    return glprogramstate;
+    auto glprogram = new backend::ProgramState(positionTextureColor_vert, fragSource.c_str());
+    
+    return glprogram;
 }
 
 std::string RendererUniformBatch::title() const
@@ -701,16 +707,16 @@ std::string RendererUniformBatch::subtitle() const
 }
 
 
-//
-// RendererUniformBatch2
-//
+////
+//// RendererUniformBatch2
+////
 
 RendererUniformBatch2::RendererUniformBatch2()
 {
     Size s = Director::getInstance()->getWinSize();
 
-    auto glBlurState = createBlurGLProgramState();
-    auto glSepiaState = createSepiaGLProgramState();
+    auto blurState = createBlurProgramState();
+    auto sepiaState = createSepiaProgramState();
 
     auto x_inc = s.width / 20;
     auto y_inc = s.height / 6;
@@ -726,37 +732,40 @@ RendererUniformBatch2::RendererUniformBatch2()
 
             auto r = CCRANDOM_0_1();
             if (r < 0.33)
-                sprite->setGLProgramState(glSepiaState);
+                sprite->setProgramState(sepiaState);
             else if (r < 0.66)
-                sprite->setGLProgramState(glBlurState);
+                sprite->setProgramState(blurState);
         }
     }
 }
 
-GLProgramState* RendererUniformBatch2::createBlurGLProgramState()
+backend::ProgramState* RendererUniformBatch2::createBlurProgramState()
 {
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
     const std::string shaderName("Shaders/example_Blur.fsh");
-#else
-    const std::string shaderName("Shaders/example_Blur_winrt.fsh");
-#endif
+
     // outline shader
     auto fileUtiles = FileUtils::getInstance();
     auto fragmentFullPath = fileUtiles->fullPathForFilename(shaderName);
     auto fragSource = fileUtiles->getStringFromFile(fragmentFullPath);
-    auto glprogram = GLProgram::createWithByteArrays(ccPositionTextureColor_noMVP_vert, fragSource.c_str());
-    auto glprogramstate = (glprogram == nullptr ? nullptr : GLProgramState::getOrCreateWithGLProgram(glprogram));
+    
+    auto programState = new backend::ProgramState(positionTextureColor_vert, fragSource.c_str());
 
-    glprogramstate->setUniformVec2("resolution", Vec2(85,121));
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
-    glprogramstate->setUniformFloat("blurRadius", 10);
-    glprogramstate->setUniformFloat("sampleNum", 5);
-#endif
+    backend::UniformLocation loc = programState->getUniformLocation("resolution");
+    auto resolution = Vec2(85, 121);
+    programState->setUniform(loc, &resolution, sizeof(resolution));
 
-    return glprogramstate;
+    loc = programState->getUniformLocation("blurRadius");
+    float blurRadius = 10.0f;
+    programState->setUniform(loc, &blurRadius, sizeof(blurRadius));
+
+    loc = programState->getUniformLocation("sampleNum");
+    float sampleNum = 5.0f;
+    programState->setUniform(loc, &sampleNum, sizeof(sampleNum));
+
+    return programState;
 }
 
-GLProgramState* RendererUniformBatch2::createSepiaGLProgramState()
+backend::ProgramState*  RendererUniformBatch2::createSepiaProgramState()
 {
     const std::string shaderName("Shaders/example_Sepia.fsh");
 
@@ -764,10 +773,9 @@ GLProgramState* RendererUniformBatch2::createSepiaGLProgramState()
     auto fileUtiles = FileUtils::getInstance();
     auto fragmentFullPath = fileUtiles->fullPathForFilename(shaderName);
     auto fragSource = fileUtiles->getStringFromFile(fragmentFullPath);
-    auto glprogram = GLProgram::createWithByteArrays(ccPositionTextureColor_noMVP_vert, fragSource.c_str());
-    auto glprogramstate = (glprogram == nullptr ? nullptr : GLProgramState::getOrCreateWithGLProgram(glprogram));
+    auto glprogram = new backend::ProgramState(positionTextureColor_vert, fragSource.c_str());
 
-    return glprogramstate;
+    return glprogram;
 }
 
 std::string RendererUniformBatch2::title() const
@@ -779,3 +787,50 @@ std::string RendererUniformBatch2::subtitle() const
 {
     return "Mixing different shader states should work ok";
 }
+
+NonBatchSprites::NonBatchSprites()
+{
+    Size s = Director::getInstance()->getWinSize();
+    Node* parent = Node::create();
+    parent->setPosition(0, 0);
+    addChild(parent);
+
+    for (int i = 0; i < 2000; ++i)
+    {
+        Sprite* sprite = nullptr;
+        if (i % 2 == 0)
+        {
+            sprite = Sprite::create("Images/grossini_dance_05.png");
+        }
+        else
+        {
+            sprite = Sprite::create("Images/grossini_dance_01.png");
+        }
+
+        if (!sprite) break;
+
+        sprite->setScale(0.1f, 0.1f);
+        float x = ((float)std::rand()) / RAND_MAX;
+        float y = ((float)std::rand()) / RAND_MAX;
+        sprite->runAction(RepeatForever::create(RotateBy::create(1, 45)));
+        
+        sprite->setPosition(Vec2(x * s.width, y * s.height));
+        parent->addChild(sprite);
+    }
+}
+
+NonBatchSprites::~NonBatchSprites()
+{
+
+}
+
+std::string NonBatchSprites::title() const
+{
+    return "Non Batched Sprites";
+}
+
+std::string NonBatchSprites::subtitle() const
+{
+    return "simulate lots of sprites";
+}
+

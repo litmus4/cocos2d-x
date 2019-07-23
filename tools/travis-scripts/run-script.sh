@@ -29,32 +29,12 @@ function do_retry()
 
 function build_linux()
 {
-    CPU_CORES=`grep -c ^processor /proc/cpuinfo`
     echo "Building tests ..."
-    cd $COCOS2DX_ROOT/build
+    cd $COCOS2DX_ROOT
     mkdir -p linux-build
     cd linux-build
-    cmake ../..
-    echo "cpu cores: ${CPU_CORES}"
-    make -j${CPU_CORES} VERBOSE=1
-}
-
-function build_mac()
-{
-    NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
-
-    xcodebuild -project $COCOS2DX_ROOT/build/cocos2d_tests.xcodeproj -scheme "build all tests Mac" -jobs $NUM_OF_CORES -arch x86_64 build | xcpretty
-    ##xcpretty has a bug, some xcodebuid fails return value would be treated as 0.
-    xcodebuild -project $COCOS2DX_ROOT/build/cocos2d_tests.xcodeproj -scheme "build all tests Mac" -jobs $NUM_OF_CORES -arch x86_64 build
-}
-
-function build_ios()
-{
-    NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
-
-    xcodebuild -project $COCOS2DX_ROOT/build/cocos2d_tests.xcodeproj -scheme "build all tests iOS" -jobs $NUM_OF_CORES  -destination "platform=iOS Simulator,name=iPhone Retina (4-inch)" build | xcpretty
-    #the following commands must not be removed
-    xcodebuild -project $COCOS2DX_ROOT/build/cocos2d_tests.xcodeproj -scheme "build all tests iOS" -jobs $NUM_OF_CORES  -destination "platform=iOS Simulator,name=iPhone Retina (4-inch)" build
+    cmake ..
+    cmake --build .
 }
 
 function build_mac_cmake()
@@ -96,29 +76,6 @@ function build_ios_cmake()
     exit 0
 }
 
-function build_android_ndk-build()
-{
-    # Build all samples
-    echo "Building Android samples ..."
-    source ../environment.sh
-
-    # build cpp-empty-test
-    # pushd $COCOS2DX_ROOT/tests/cpp-empty-test
-    # cocos compile -p android --android-studio
-    # popd
-
-    # build cpp-tests
-    pushd $COCOS2DX_ROOT/tests/cpp-tests/proj.android
-    do_retry ./gradlew assembleRelease -PPROP_BUILD_TYPE=ndk-build --parallel --info
-    popd
-
-    # build js-tests
-    # should uncomon it when building time not exceed time limit
-    # pushd $COCOS2DX_ROOT/tests/js-tests
-    # cocos compile -p android
-    # popd
-}
-
 function build_android_cmake()
 {
     # Build all samples
@@ -131,19 +88,6 @@ function build_android_cmake()
     popd
 }
 
-function build_android_lua_ndk-build()
-{
-    # Build all samples
-    echo "Building Android samples lua ..."
-    source ../environment.sh
-
-    # build lua-tests
-    pushd $COCOS2DX_ROOT/tests/lua-tests/project/proj.android
-    do_retry ./gradlew assembleDebug -PPROP_BUILD_TYPE=ndk-build --parallel --info
-    popd
-
-}
-
 function build_android_lua_cmake()
 {
     # Build all samples
@@ -152,19 +96,6 @@ function build_android_lua_cmake()
 
     # build lua-tests
     pushd $COCOS2DX_ROOT/tests/lua-tests/project/proj.android
-    do_retry ./gradlew assembleDebug -PPROP_BUILD_TYPE=cmake --parallel --info
-    popd
-
-}
-
-function build_android_js_cmake()
-{
-    # Build all samples
-    echo "Building Android samples js ..."
-    source ../environment.sh
-
-    # build lua-tests
-    pushd $COCOS2DX_ROOT/tests/js-tests/project/proj.android
     do_retry ./gradlew assembleDebug -PPROP_BUILD_TYPE=cmake --parallel --info
     popd
 
@@ -193,15 +124,6 @@ function genernate_binding_codes()
     pushd "$COCOS2DX_ROOT/tools/tolua"
     python ./genbindings.py
     popd
-
-    # We don't support building js projects for linux platform,
-    # therefore, don't generate js-binding code for it.
-    if [ $TRAVIS_OS_NAME != "linux" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-        echo "Create auto-generated jsbinding glue codes."
-        pushd "$COCOS2DX_ROOT/tools/tojs"
-        python ./genbindings.py
-        popd
-    fi
 }
 
 # generate cocos_files.json and check diff
@@ -215,18 +137,7 @@ function update_cocos_files()
     $COCOS2DX_ROOT/tools/travis-scripts/generate-template-files.py
     git diff FETCH_HEAD --stat --exit-code "$COCOSFILE_PATH"
     COCOSFILE_DIFF_RETVAL=$?
-
-    if [ $LUA_DIFF_RETVAL -eq 0 ] && [ $JS_DIFF_RETVAL -eq 0 ] && [ $COCOSFILE_DIFF_RETVAL -eq 0 ]; then
-        echo
-        echo "No differences in generated files"
-        echo "Exiting with success."
-        echo
-        exit 0
-    else
-        echo
-        echo "Generated files differ from HEAD. Continuing."
-        echo
-    fi
+    echo $COCOSFILE_DIFF_RETVAL
 
     # Exit on error
     set -e
@@ -234,13 +145,12 @@ function update_cocos_files()
 
 function generate_pull_request_for_binding_codes_and_cocosfiles()
 {
-    COCOS_ROBOT_REMOTE="https://${GH_USER}:${GH_PASSWORD}@github.com/${GH_USER}/cocos2d-x.git"
-    LUA_AUTO_GENERATE_SCRIPT_PATH="$COCOS2DX_ROOT/cocos/scripting/lua-bindings/auto"
-    JS_AUTO_GENERATE_SCRIPT_PATH="$COCOS2DX_ROOT/cocos/scripting/js-bindings/auto"
-    ELAPSEDSECS=`date +%s`
-    COCOS_BRANCH="update_lua_bindings_$ELAPSEDSECS"
-    COMMITTAG="[ci skip][AUTO]: updating luabinding & jsbinding & cocos_file.json automatically"
-    PULL_REQUEST_REPO="https://api.github.com/repos/cocos2d/cocos2d-x/pulls"
+    local COCOS_ROBOT_REMOTE="https://${GH_USER}:${GH_PASSWORD}@github.com/${GH_USER}/cocos2d-x.git"
+    local LUA_AUTO_GENERATE_SCRIPT_PATH="$COCOS2DX_ROOT/cocos/scripting/lua-bindings/auto"
+    local ELAPSEDSECS=`date +%s`
+    local COCOS_BRANCH="update_lua_bindings_$ELAPSEDSECS"
+    local COMMITTAG="[ci skip][AUTO]: updating luabinding & cocos_file.json automatically"
+    local PULL_REQUEST_REPO="https://api.github.com/repos/cocos2d/cocos2d-x/pulls"
 
     pushd "$COCOS2DX_ROOT"
     #Set git user for cocos2d-lua repo
@@ -259,19 +169,20 @@ function generate_pull_request_for_binding_codes_and_cocosfiles()
     # Don't exit on non-zero return value
     set +e
     git diff FETCH_HEAD --stat --exit-code "$LUA_AUTO_GENERATE_SCRIPT_PATH"
-    LUA_DIFF_RETVAL=$?
-
-    git diff FETCH_HEAD --stat --exit-code "$JS_AUTO_GENERATE_SCRIPT_PATH"
-    JS_DIFF_RETVAL=$?
+    local lua_binding_codes_diff=$?
 
     # generate cocos_files.json and check diff
-    update_cocos_files
+    local cocos_file_diff=$(update_cocos_files)
+    if [ $lua_binding_codes_diff -eq 0 ] && [ $cocos_file_diff -eq 0 ]; then
+        echo "lua binding codes and cocos file are not differences"
+        exit 0
+    fi
+
 
     # Exit on error
     set -e
 
     git add -f --all "$LUA_AUTO_GENERATE_SCRIPT_PATH"
-    git add -f --all "$JS_AUTO_GENERATE_SCRIPT_PATH"
     git add -f --all "$COCOSFILE_PATH"
     git checkout -b "$COCOS_BRANCH"
     git commit -m "$COMMITTAG"
@@ -289,17 +200,50 @@ function run_pull_request()
 {
     echo "Building pull request ..."
 
-    # need to generate binding codes for all targets
-    genernate_binding_codes
+    if [ "$BUILD_TARGET" == "android_cocos_new_test" ]; then
+        source ../environment.sh
+        pushd $COCOS2DX_ROOT
+        update_cocos_files
+        python -u tools/cocos2d-console/bin/cocos.py --agreement n new -l cpp -p my.pack.qqqq cocos_new_test
+        popd
+        pushd $COCOS2DX_ROOT/cocos_new_test/proj.android
+        do_retry ./gradlew build
+        popd
+        exit 0
+    fi
+
+    if [ "$BUILD_TARGET" == "linux_cocos_new_test" ]; then
+        genernate_binding_codes
+        pushd $COCOS2DX_ROOT
+        update_cocos_files
+        python -u tools/cocos2d-console/bin/cocos.py --agreement n new -l lua -p my.pack.qqqq cocos_new_test
+        popd
+
+        echo "Building tests ..."
+        cd $COCOS2DX_ROOT/cocos_new_test
+        mkdir -p linux-build
+        cd linux-build
+        cmake ..
+        cmake --build .
+        exit 0
+    fi
+    
+    if [ $BUILD_TARGET == 'mac_cmake' ]; then
+        genernate_binding_codes
+        build_mac_cmake
+        exit 0
+    fi
+
+    if [ $BUILD_TARGET == 'ios_cmake' ]; then
+        genernate_binding_codes
+        build_ios_cmake
+        exit 0
+    fi
 
     # linux
     if [ $BUILD_TARGET == 'linux' ]; then
+        genernate_binding_codes
         build_linux
-    fi
-
-    # android
-    if [ $BUILD_TARGET == 'android_ndk-build' ]; then
-        build_android_ndk-build
     fi
 
     # android
@@ -308,26 +252,9 @@ function run_pull_request()
     fi
 
     # android_lua
-    if [ $BUILD_TARGET == 'android_lua_ndk-build' ]; then
-        build_android_lua_ndk-build
-    fi
-
-    # android_lua
     if [ $BUILD_TARGET == 'android_lua_cmake' ]; then
+        genernate_binding_codes
         build_android_lua_cmake
-    fi
-
-    # android_js
-    if [ $BUILD_TARGET == 'android_js_cmake' ]; then
-        build_android_js_cmake
-    fi
-
-    if [ $BUILD_TARGET == 'mac' ]; then
-        build_mac
-    fi
-
-    if [ $BUILD_TARGET == 'ios' ]; then
-        build_ios
     fi
 }
 
@@ -358,43 +285,6 @@ function run_after_merge()
 
 # build pull request
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-    if [ "$BUILD_TARGET" == "android_cocos_new_test" ]; then
-        source ../environment.sh
-        pushd $COCOS2DX_ROOT
-        update_cocos_files
-        python -u tools/cocos2d-console/bin/cocos.py --agreement n new -l cpp -p my.pack.qqqq cocos_new_test
-        popd
-        pushd $COCOS2DX_ROOT/cocos_new_test/proj.android
-        do_retry ./gradlew build
-        popd
-        exit 0
-    fi
-
-    if [ "$BUILD_TARGET" == "linux_cocos_new_test" ]; then
-        pushd $COCOS2DX_ROOT
-        update_cocos_files
-        python -u tools/cocos2d-console/bin/cocos.py --agreement n new -l lua -p my.pack.qqqq cocos_new_test
-        popd
-        CPU_CORES=`grep -c ^processor /proc/cpuinfo`
-        echo "Building tests ..."
-        cd $COCOS2DX_ROOT/cocos_new_test
-        mkdir -p linux-build
-        cd linux-build
-        cmake ..
-        echo "cpu cores: ${CPU_CORES}"
-        make -j${CPU_CORES} VERBOSE=1
-        exit 0
-    fi
-    if [ $BUILD_TARGET == 'mac_cmake' ]; then
-        build_mac_cmake
-        exit 0
-    fi
-
-    if [ $BUILD_TARGET == 'ios_cmake' ]; then
-        build_ios_cmake
-        exit 0
-    fi
-
     run_pull_request
 fi
 
